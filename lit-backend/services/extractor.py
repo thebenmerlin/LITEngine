@@ -140,7 +140,7 @@ IPC_SECTION_INLINE = re.compile(
 # --- Acts ---
 
 ACT_RE = re.compile(
-    r"((?:Indian\s+(?:Penal\s+Code|Evidence\s+Act|Succession\s+Act|Contract\s+Act|"
+    r"\b((?:Indian\s+(?:Penal\s+Code|Evidence\s+Act|Succession\s+Act|Contract\s+Act|"
     r"Stamp\s+Act|Trusts\s+Act|Partnership\s+Act|Arbitration\s*(?:and\s*)?Conciliation\s*Act)|"
     r"Code\s+of\s+(?:Criminal|Civil)\s+Procedure|"
     r"Constitution\s+of\s+India|"
@@ -150,7 +150,7 @@ ACT_RE = re.compile(
     r"Prevention\s+of\s+Corruption\s+Act|"
     r"Prevention\s+of\s+Money\s+Laundering\s+Act|"
     r"Protection\s+of\s+Children\s+from\s+Sexual\s+Offences\s+Act|"
-    r"(?:[\w\s]+?)\s+Act,\s*\d{4}))",
+    r"(?:[A-Z][\w\s]{2,39}?)\s+Act\s*,?\s*\d{4}))\b",
     re.IGNORECASE,
 )
 
@@ -168,12 +168,14 @@ RESPONDENT_RE = re.compile(
     re.IGNORECASE,
 )
 
-# The classic "X vs. Y" pattern — handles multi-line formatting
+# The classic "X vs. Y" pattern — parties must start after case number or blank line
 VS_PATTERN = re.compile(
-    r"([A-Z][A-Za-z\s\.\,\&\-\—\@]+?)\s+(?:versus|vs\.?|v\.)\s+"
-    r"([A-Z][A-Za-z\s\.\,\&\-\—\@]+?)"
-    r"(?:\s+(?:CORAM|Date:|J\.|JJ\.|Bench|Hon|Order|FIR|Criminal|Civil|Writ|AIR|SCC|SCR)|\s*$)",
-    re.DOTALL,
+    r"(?:[Nn]o\.\s*\d+.*?)?\s*\n{1,2}"
+    r"([^\n]+?)"
+    r"\s*\n?\s*(?:versus|vs\.?|v\.)\s*\n?\s*"
+    r"([^\n]+)"
+    r"(?:\n\s*(?:CORAM|Date:|J\.|JJ|Bench|Hon|Order|FIR|AIR|SCC|SCR)|$)",
+    re.IGNORECASE,
 )
 
 # --- Court ---
@@ -256,8 +258,8 @@ RELIEF_RE = re.compile(
 # --- Legal issues ---
 
 ISSUE_RE = re.compile(
-    r"(?:issue|question|whether)\s+(?:is|arises|before\s+this\s+"
-    r"(?:Court|bench))?\s*[:.\-—]?\s*(.+?)(?:\n{2,}|It\s+is|The\s+|Held\s*[:.])",
+    r"(?:issue|question)\s+(?:is|arises|before\s+this\s+"
+    r"(?:Court|bench))?\s*[:.\-—]?\s*(.+?)(?:\n{2,}|It\s+is|The\s+|Held\s*[:.]|\?)",
     re.IGNORECASE | re.DOTALL,
 )
 
@@ -292,7 +294,22 @@ def _extract_acts_rules(text: str) -> List[str]:
         act_name = m.group(1).strip().rstrip(",;.")
         # Normalize whitespace
         act_name = re.sub(r"\s+", " ", act_name)
-        if len(act_name) > 4:  # filter noise
+        # Strip leading conjunctions/articles (iterative)
+        prev = ""
+        while prev != act_name:
+            prev = act_name
+            act_name = re.sub(
+                r"^\s*(?:and|or|the|under|of|by|for|with|from)\s+",
+                "", act_name, flags=re.IGNORECASE
+            ).strip()
+        # Filter out sentence fragments that happen to contain an act name
+        if len(act_name) > 4:
+            lower = act_name.lower()
+            # Skip if it starts with a digit or contains section/under/article/order
+            if re.match(r"^\d", act_name):
+                continue
+            if re.search(r"\b(?:under|section|article|order)\b", lower):
+                continue
             acts.add(act_name)
     return sorted(acts)
 
@@ -305,8 +322,19 @@ def _extract_parties_rules(text: str) -> Parties:
     # "X vs. Y" pattern (most reliable)
     vs_match = VS_PATTERN.search(text)
     if vs_match:
-        petitioner = vs_match.group(1).strip().rstrip(",;:")
-        respondent = vs_match.group(2).strip().rstrip(",;:")
+        petitioner = vs_match.group(1).strip()
+        respondent = vs_match.group(2).strip()
+        # Clean up annotations: "... Appellant", "... Respondent", etc.
+        petitioner = re.sub(
+            r'\s*\.+\s*(?:Appellant|Petitioner|Complainant|Plaintiff)\s*$',
+            '', petitioner, flags=re.IGNORECASE
+        )
+        respondent = re.sub(
+            r'\s*\.+\s*(?:Respondent|Accused|Defendant)\s*$',
+            '', respondent, flags=re.IGNORECASE
+        )
+        petitioner = petitioner.rstrip(",;:")
+        respondent = respondent.rstrip(",;:")
 
     # Explicit patterns
     if not petitioner:

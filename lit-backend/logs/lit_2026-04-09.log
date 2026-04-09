@@ -114,3 +114,37 @@
 2026-04-09 22:54:39.030 | WARNING  | services.embedder:__init__:148 - No valid HUGGINGFACE_API_KEY — falling back to local SentenceTransformer model for embeddings
 2026-04-09 23:09:20.909 | WARNING  | services.extractor:__init__:476 - No valid HUGGINGFACE_API_KEY — InLegalBERT model will be skipped; rule-based extraction only.
 2026-04-09 23:09:48.470 | WARNING  | services.extractor:__init__:476 - No valid HUGGINGFACE_API_KEY — InLegalBERT model will be skipped; rule-based extraction only.
+2026-04-09 23:20:26.382 | WARNING  | services.extractor:__init__:501 - No valid HUGGINGFACE_API_KEY — InLegalBERT model will be skipped; rule-based extraction only.
+2026-04-09 23:22:14.640 | WARNING  | services.extractor:__init__:511 - No valid HUGGINGFACE_API_KEY — InLegalBERT model will be skipped; rule-based extraction only.
+2026-04-09 23:25:39.718 | WARNING  | services.extractor:__init__:514 - No valid HUGGINGFACE_API_KEY — InLegalBERT model will be skipped; rule-based extraction only.
+2026-04-09 23:29:14.345 | WARNING  | services.extractor:__init__:514 - No valid HUGGINGFACE_API_KEY — InLegalBERT model will be skipped; rule-based extraction only.
+2026-04-09 23:45:09.708 | WARNING  | services.extractor:__init__:516 - No valid HUGGINGFACE_API_KEY — InLegalBERT model will be skipped; rule-based extraction only.
+2026-04-09 23:49:22.282 | WARNING  | services.extractor:__init__:522 - No valid HUGGINGFACE_API_KEY — InLegalBERT model will be skipped; rule-based extraction only.
+2026-04-09 23:51:49.711 | WARNING  | services.extractor:__init__:523 - No valid HUGGINGFACE_API_KEY — InLegalBERT model will be skipped; rule-based extraction only.
+2026-04-09 23:54:56.917 | WARNING  | services.extractor:__init__:523 - No valid HUGGINGFACE_API_KEY — InLegalBERT model will be skipped; rule-based extraction only.
+2026-04-09 23:56:33.822 | WARNING  | services.embedder:__init__:148 - No valid HUGGINGFACE_API_KEY — falling back to local SentenceTransformer model for embeddings
+2026-04-09 23:56:33.865 | WARNING  | services.kanoon:__init__:157 - USE_FIXTURES=true — serving data from fixtures only
+2026-04-09 23:56:33.889 | WARNING  | services.extractor:__init__:529 - No valid HUGGINGFACE_API_KEY — InLegalBERT model will be skipped; rule-based extraction only.
+2026-04-09 23:56:33.905 | INFO     | main:lifespan:33 - Starting Legal Intelligence Terminal v0.1.0
+2026-04-09 23:56:33.906 | INFO     | main:lifespan:34 - CORS origins: http://localhost:3000,http://localhost:8080
+2026-04-09 23:56:33.906 | INFO     | main:lifespan:35 - Cache TTL: 3600s
+2026-04-09 23:56:33.907 | INFO     | services.embedder:load_index:497 - Loaded FAISS index from /Users/gajanan/Documents/LITEngine/lit-backend/fixtures/precedent_index.json: 11 vectors, 3 unique docs
+2026-04-09 23:56:33.908 | INFO     | main:lifespan:41 - FAISS index loaded: 3 documents, 11 vectors, 117.7 KB
+2026-04-10 00:00:14.555 | INFO     | routers.facts:extract_facts:118 - Fact extraction requested: 198 chars, use_model=True
+2026-04-10 00:00:14.565 | INFO     | services.extractor:extract:805 - Extraction complete: method=rules, confidence=0.5000, time=10ms, sections=3, acts=0, facts=5
+2026-04-10 00:09:05.740 | INFO     | routers.facts:extract_facts:118 - Fact extraction requested: 347 chars, use_model=True
+2026-04-10 00:09:05.744 | INFO     | services.extractor:extract:805 - Extraction complete: method=rules, confidence=0.5000, time=2ms, sections=2, acts=0, facts=5
+2026-04-10 00:10:28.284 | INFO     | routers.facts:extract_facts_batch:191 - Batch extraction requested: 3 cases
+2026-04-10 00:10:28.289 | INFO     | services.extractor:extract:805 - Extraction complete: method=rules, confidence=0.5000, time=1ms, sections=1, acts=0, facts=2
+2026-04-10 00:10:28.291 | INFO     | services.extractor:extract:805 - Extraction complete: method=rules, confidence=0.5000, time=0ms, sections=0, acts=0, facts=2
+2026-04-10 00:10:28.291 | INFO     | services.extractor:extract:805 - Extraction complete: method=rules, confidence=0.5000, time=0ms, sections=1, acts=0, facts=1
+2026-04-10 00:13:35.757 | INFO     | routers.precedent:search_precedents:51 - Semantic precedent search: query='constitutional validity fundamental rights', top_k=3, use_kanoon=True
+2026-04-10 00:13:35.759 | INFO     | services.embedder:_get_local_model:165 - Loading local embedding model: sentence-transformers/all-MiniLM-L6-v2
+2026-04-10 00:13:45.606 | INFO     | services.embedder:_get_local_model:169 - Local embedding model loaded successfully
+2026-04-10 00:13:47.574 | DEBUG    | services.embedder:search:372 - FAISS search returned 3 results (top_k=3)
+2026-04-10 00:13:47.577 | INFO     | routers.precedent:search_precedents:92 - FAISS search returned 3 hits (2 unique docs)
+2026-04-10 00:13:47.577 | INFO     | routers.precedent:search_precedents:100 - FAISS results (2) < top_k (3), supplementing with 1 Kanoon results
+2026-04-10 00:13:47.578 | INFO     | services.kanoon:search:410 - Serving fixture search for query='constitutional validity fundamental rights'
+2026-04-10 00:13:47.580 | DEBUG    | utils.cache:set:39 - Cache set for key: kanoon:search:constitutional validity fundamental rights:None:None:None:1
+2026-04-10 00:14:13.670 | INFO     | utils.cache:clear:53 - Cache cleared (1 entries removed)
+2026-04-10 00:14:13.671 | INFO     | main:lifespan:55 - Application shutdown complete
