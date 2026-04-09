@@ -1,0 +1,116 @@
+2026-04-09 22:00:00.218 | INFO     | main:lifespan:31 - Starting Legal Intelligence Terminal v0.1.0
+2026-04-09 22:00:00.218 | INFO     | main:lifespan:32 - CORS origins: http://localhost:3000,http://localhost:8080
+2026-04-09 22:00:00.218 | INFO     | main:lifespan:33 - Cache TTL: 3600s
+2026-04-09 22:00:41.078 | INFO     | utils.cache:clear:53 - Cache cleared (0 entries removed)
+2026-04-09 22:00:41.079 | INFO     | main:lifespan:39 - Application shutdown complete
+2026-04-09 22:08:26.265 | WARNING  | services.kanoon:__init__:157 - USE_FIXTURES=true — serving data from fixtures only
+2026-04-09 22:09:05.539 | WARNING  | services.kanoon:__init__:157 - USE_FIXTURES=true — serving data from fixtures only
+2026-04-09 22:09:05.562 | INFO     | main:lifespan:31 - Starting Legal Intelligence Terminal v0.1.0
+2026-04-09 22:09:05.562 | INFO     | main:lifespan:32 - CORS origins: http://localhost:3000,http://localhost:8080
+2026-04-09 22:09:05.562 | INFO     | main:lifespan:33 - Cache TTL: 3600s
+2026-04-09 22:09:20.861 | INFO     | routers.precedent:search_precedents:31 - Precedent search: query='Kesavananda'
+2026-04-09 22:09:20.861 | INFO     | services.kanoon:search:410 - Serving fixture search for query='Kesavananda'
+2026-04-09 22:09:20.862 | DEBUG    | utils.cache:set:39 - Cache set for key: kanoon:search:Kesavananda:None:None:None:5
+2026-04-09 22:09:24.317 | INFO     | routers.precedent:get_precedent_detail:61 - Fetching judgment detail: doc_id=11990
+2026-04-09 22:09:24.317 | INFO     | services.kanoon:get_judgment:462 - Serving fixture detail for doc_id=11990
+2026-04-09 22:09:24.317 | DEBUG    | utils.cache:set:39 - Cache set for key: kanoon:doc:11990
+2026-04-09 22:09:31.950 | INFO     | routers.precedent:get_precedent_detail:61 - Fetching judgment detail: doc_id=157783
+2026-04-09 22:09:31.951 | INFO     | services.kanoon:get_judgment:462 - Serving fixture detail for doc_id=157783
+2026-04-09 22:09:31.951 | DEBUG    | utils.cache:set:39 - Cache set for key: kanoon:doc:157783
+2026-04-09 22:09:46.235 | INFO     | routers.precedent:get_precedent_detail:61 - Fetching judgment detail: doc_id=99999
+2026-04-09 22:09:46.235 | INFO     | services.kanoon:get_judgment:462 - Serving fixture detail for doc_id=99999
+2026-04-09 22:09:51.668 | INFO     | utils.cache:clear:53 - Cache cleared (3 entries removed)
+2026-04-09 22:09:51.668 | INFO     | main:lifespan:39 - Application shutdown complete
+2026-04-09 22:23:15.539 | WARNING  | services.embedder:__init__:148 - No valid HUGGINGFACE_API_KEY — falling back to local SentenceTransformer model for embeddings
+2026-04-09 22:23:15.577 | WARNING  | services.kanoon:__init__:157 - USE_FIXTURES=true — serving data from fixtures only
+2026-04-09 22:23:15.607 | INFO     | main:lifespan:33 - Starting Legal Intelligence Terminal v0.1.0
+2026-04-09 22:23:15.607 | INFO     | main:lifespan:34 - CORS origins: http://localhost:3000,http://localhost:8080
+2026-04-09 22:23:15.607 | INFO     | main:lifespan:35 - Cache TTL: 3600s
+2026-04-09 22:23:15.618 | INFO     | services.embedder:load_index:497 - Loaded FAISS index from /Users/gajanan/Documents/LITEngine/lit-backend/fixtures/precedent_index.json: 11 vectors, 3 unique docs
+2026-04-09 22:23:15.619 | INFO     | main:lifespan:41 - FAISS index loaded: 3 documents, 11 vectors, 117.7 KB
+2026-04-09 22:24:27.796 | INFO     | routers.precedent:search_precedents:51 - Semantic precedent search: query='Can parliament amend the basic structure of the constitution', top_k=5, use_kanoon=True
+2026-04-09 22:24:27.797 | INFO     | services.embedder:_get_local_model:165 - Loading local embedding model: sentence-transformers/all-MiniLM-L6-v2
+2026-04-09 22:25:09.324 | INFO     | services.embedder:_get_local_model:169 - Local embedding model loaded successfully
+2026-04-09 22:25:11.212 | DEBUG    | services.embedder:search:372 - FAISS search returned 5 results (top_k=5)
+2026-04-09 22:25:11.214 | INFO     | routers.precedent:search_precedents:92 - FAISS search returned 5 hits (2 unique docs)
+2026-04-09 22:25:11.214 | INFO     | routers.precedent:search_precedents:100 - FAISS results (2) < top_k (5), supplementing with 3 Kanoon results
+2026-04-09 22:25:11.214 | INFO     | services.kanoon:search:410 - Serving fixture search for query='Can parliament amend the basic structure of the constitution'
+2026-04-09 22:25:11.215 | DEBUG    | utils.cache:set:39 - Cache set for key: kanoon:search:Can parliament amend the basic structure of the constitution:None:None:None:3
+2026-04-09 22:25:21.680 | INFO     | routers.precedent:search_precedents:51 - Semantic precedent search: query='Can parliament amend the basic structure', top_k=3, use_kanoon=True
+2026-04-09 22:25:22.029 | DEBUG    | services.embedder:search:372 - FAISS search returned 3 results (top_k=3)
+2026-04-09 22:25:22.029 | INFO     | routers.precedent:search_precedents:92 - FAISS search returned 3 hits (2 unique docs)
+2026-04-09 22:25:22.029 | INFO     | routers.precedent:search_precedents:100 - FAISS results (2) < top_k (3), supplementing with 1 Kanoon results
+2026-04-09 22:25:22.029 | INFO     | services.kanoon:search:410 - Serving fixture search for query='Can parliament amend the basic structure'
+2026-04-09 22:25:22.030 | DEBUG    | utils.cache:set:39 - Cache set for key: kanoon:search:Can parliament amend the basic structure:None:None:None:1
+2026-04-09 22:41:36.487 | INFO     | routers.precedent:search_precedents:51 - Semantic precedent search: query='Can parliament amend the basic structure', top_k=3, use_kanoon=True
+2026-04-09 22:41:36.668 | DEBUG    | services.embedder:search:372 - FAISS search returned 3 results (top_k=3)
+2026-04-09 22:41:36.669 | INFO     | routers.precedent:search_precedents:92 - FAISS search returned 3 hits (2 unique docs)
+2026-04-09 22:41:36.669 | INFO     | routers.precedent:search_precedents:100 - FAISS results (2) < top_k (3), supplementing with 1 Kanoon results
+2026-04-09 22:41:36.669 | DEBUG    | utils.cache:get:33 - Cache hit for key: kanoon:search:Can parliament amend the basic structure:None:None:None:1
+2026-04-09 22:41:36.669 | INFO     | services.kanoon:search:405 - Cache hit for search: kanoon:search:Can parliament amend the basic structure:None:None:None:1
+2026-04-09 22:42:28.331 | WARNING  | services.embedder:__init__:148 - No valid HUGGINGFACE_API_KEY — falling back to local SentenceTransformer model for embeddings
+2026-04-09 22:42:28.445 | INFO     | services.embedder:load_index:497 - Loaded FAISS index from /Users/gajanan/Documents/LITEngine/lit-backend/fixtures/precedent_index.json: 11 vectors, 3 unique docs
+2026-04-09 22:42:28.445 | INFO     | services.embedder:_get_local_model:165 - Loading local embedding model: sentence-transformers/all-MiniLM-L6-v2
+2026-04-09 22:42:37.430 | INFO     | services.embedder:_get_local_model:169 - Local embedding model loaded successfully
+2026-04-09 22:42:37.701 | DEBUG    | services.embedder:search:372 - FAISS search returned 3 results (top_k=3)
+2026-04-09 22:44:17.375 | INFO     | utils.cache:clear:53 - Cache cleared (2 entries removed)
+2026-04-09 22:44:17.376 | INFO     | main:lifespan:55 - Application shutdown complete
+2026-04-09 22:44:18.644 | WARNING  | services.embedder:__init__:148 - No valid HUGGINGFACE_API_KEY — falling back to local SentenceTransformer model for embeddings
+2026-04-09 22:44:18.678 | WARNING  | services.kanoon:__init__:157 - USE_FIXTURES=true — serving data from fixtures only
+2026-04-09 22:44:18.723 | INFO     | main:lifespan:33 - Starting Legal Intelligence Terminal v0.1.0
+2026-04-09 22:44:18.723 | INFO     | main:lifespan:34 - CORS origins: http://localhost:3000,http://localhost:8080
+2026-04-09 22:44:18.723 | INFO     | main:lifespan:35 - Cache TTL: 3600s
+2026-04-09 22:44:18.724 | INFO     | services.embedder:load_index:497 - Loaded FAISS index from /Users/gajanan/Documents/LITEngine/lit-backend/fixtures/precedent_index.json: 11 vectors, 3 unique docs
+2026-04-09 22:44:18.724 | INFO     | main:lifespan:41 - FAISS index loaded: 3 documents, 11 vectors, 117.7 KB
+2026-04-09 22:44:42.185 | INFO     | routers.precedent:search_precedents:51 - Semantic precedent search: query='passport impounded fundamental rights', top_k=3, use_kanoon=False
+2026-04-09 22:44:42.185 | INFO     | services.embedder:_get_local_model:165 - Loading local embedding model: sentence-transformers/all-MiniLM-L6-v2
+2026-04-09 22:44:50.840 | INFO     | services.embedder:_get_local_model:169 - Local embedding model loaded successfully
+2026-04-09 22:44:51.433 | DEBUG    | services.embedder:search:372 - FAISS search returned 3 results (top_k=3)
+2026-04-09 22:44:51.433 | INFO     | routers.precedent:search_precedents:92 - FAISS search returned 3 hits (2 unique docs)
+2026-04-09 22:46:28.490 | INFO     | routers.precedent:search_precedents:51 - Semantic precedent search: query='test', top_k=2, use_kanoon=False
+2026-04-09 22:46:29.076 | DEBUG    | services.embedder:search:372 - FAISS search returned 2 results (top_k=2)
+2026-04-09 22:46:29.076 | INFO     | routers.precedent:search_precedents:92 - FAISS search returned 2 hits (1 unique docs)
+2026-04-09 22:47:14.479 | WARNING  | services.embedder:__init__:148 - No valid HUGGINGFACE_API_KEY — falling back to local SentenceTransformer model for embeddings
+2026-04-09 22:47:14.586 | WARNING  | services.kanoon:__init__:157 - USE_FIXTURES=true — serving data from fixtures only
+2026-04-09 22:47:14.588 | INFO     | services.embedder:load_index:497 - Loaded FAISS index from /Users/gajanan/Documents/LITEngine/lit-backend/fixtures/precedent_index.json: 11 vectors, 3 unique docs
+2026-04-09 22:47:14.588 | INFO     | services.embedder:_get_local_model:165 - Loading local embedding model: sentence-transformers/all-MiniLM-L6-v2
+2026-04-09 22:47:23.414 | INFO     | services.embedder:_get_local_model:169 - Local embedding model loaded successfully
+2026-04-09 22:47:23.711 | DEBUG    | services.embedder:search:372 - FAISS search returned 2 results (top_k=2)
+2026-04-09 22:47:42.345 | WARNING  | services.embedder:__init__:148 - No valid HUGGINGFACE_API_KEY — falling back to local SentenceTransformer model for embeddings
+2026-04-09 22:47:42.346 | INFO     | services.embedder:load_index:497 - Loaded FAISS index from /Users/gajanan/Documents/LITEngine/lit-backend/fixtures/precedent_index.json: 11 vectors, 3 unique docs
+2026-04-09 22:47:42.346 | INFO     | services.embedder:_get_local_model:165 - Loading local embedding model: sentence-transformers/all-MiniLM-L6-v2
+2026-04-09 22:47:50.202 | INFO     | services.embedder:_get_local_model:169 - Local embedding model loaded successfully
+2026-04-09 22:47:50.308 | DEBUG    | services.embedder:search:372 - FAISS search returned 2 results (top_k=2)
+2026-04-09 22:49:33.366 | INFO     | utils.cache:clear:53 - Cache cleared (0 entries removed)
+2026-04-09 22:49:33.367 | INFO     | main:lifespan:55 - Application shutdown complete
+2026-04-09 22:49:34.548 | WARNING  | services.embedder:__init__:148 - No valid HUGGINGFACE_API_KEY — falling back to local SentenceTransformer model for embeddings
+2026-04-09 22:49:34.586 | WARNING  | services.kanoon:__init__:157 - USE_FIXTURES=true — serving data from fixtures only
+2026-04-09 22:49:34.610 | INFO     | main:lifespan:33 - Starting Legal Intelligence Terminal v0.1.0
+2026-04-09 22:49:34.610 | INFO     | main:lifespan:34 - CORS origins: http://localhost:3000,http://localhost:8080
+2026-04-09 22:49:34.610 | INFO     | main:lifespan:35 - Cache TTL: 3600s
+2026-04-09 22:49:34.611 | INFO     | services.embedder:load_index:497 - Loaded FAISS index from /Users/gajanan/Documents/LITEngine/lit-backend/fixtures/precedent_index.json: 11 vectors, 3 unique docs
+2026-04-09 22:49:34.611 | INFO     | main:lifespan:41 - FAISS index loaded: 3 documents, 11 vectors, 117.7 KB
+2026-04-09 22:51:57.224 | INFO     | routers.precedent:search_precedents:51 - Semantic precedent search: query='test query', top_k=3, use_kanoon=True
+2026-04-09 22:51:57.224 | INFO     | services.embedder:_get_local_model:165 - Loading local embedding model: sentence-transformers/all-MiniLM-L6-v2
+2026-04-09 22:52:05.592 | INFO     | services.embedder:_get_local_model:169 - Local embedding model loaded successfully
+2026-04-09 22:52:06.306 | DEBUG    | services.embedder:search:372 - FAISS search returned 3 results (top_k=3)
+2026-04-09 22:52:06.306 | INFO     | routers.precedent:search_precedents:92 - FAISS search returned 3 hits (2 unique docs)
+2026-04-09 22:52:06.306 | INFO     | routers.precedent:search_precedents:100 - FAISS results (2) < top_k (3), supplementing with 1 Kanoon results
+2026-04-09 22:52:06.306 | INFO     | services.kanoon:search:410 - Serving fixture search for query='test query'
+2026-04-09 22:52:06.306 | DEBUG    | utils.cache:set:39 - Cache set for key: kanoon:search:test query:None:None:None:1
+2026-04-09 22:53:39.817 | INFO     | routers.precedent:search_precedents:51 - Semantic precedent search: query='random unrelated query xyz', top_k=5, use_kanoon=True
+2026-04-09 22:53:39.959 | DEBUG    | services.embedder:search:372 - FAISS search returned 5 results (top_k=5)
+2026-04-09 22:53:39.959 | INFO     | routers.precedent:search_precedents:92 - FAISS search returned 5 hits (2 unique docs)
+2026-04-09 22:53:39.959 | INFO     | routers.precedent:search_precedents:100 - FAISS results (2) < top_k (5), supplementing with 3 Kanoon results
+2026-04-09 22:53:39.959 | INFO     | services.kanoon:search:410 - Serving fixture search for query='random unrelated query xyz'
+2026-04-09 22:53:39.960 | DEBUG    | utils.cache:set:39 - Cache set for key: kanoon:search:random unrelated query xyz:None:None:None:3
+2026-04-09 22:53:58.838 | INFO     | routers.precedent:index_document:179 - Indexing document into FAISS: doc_id=11990
+2026-04-09 22:53:58.839 | INFO     | routers.precedent:index_document:189 - Doc 11990 already in index (4 chunks)
+2026-04-09 22:54:21.319 | INFO     | routers.precedent:get_precedent_detail:155 - Fetching judgment detail: doc_id=11990
+2026-04-09 22:54:21.320 | INFO     | services.kanoon:get_judgment:462 - Serving fixture detail for doc_id=11990
+2026-04-09 22:54:21.321 | DEBUG    | utils.cache:set:39 - Cache set for key: kanoon:doc:11990
+2026-04-09 22:54:27.471 | INFO     | utils.cache:clear:53 - Cache cleared (3 entries removed)
+2026-04-09 22:54:27.471 | INFO     | main:lifespan:55 - Application shutdown complete
+2026-04-09 22:54:39.030 | WARNING  | services.embedder:__init__:148 - No valid HUGGINGFACE_API_KEY — falling back to local SentenceTransformer model for embeddings
+2026-04-09 23:09:20.909 | WARNING  | services.extractor:__init__:476 - No valid HUGGINGFACE_API_KEY — InLegalBERT model will be skipped; rule-based extraction only.
+2026-04-09 23:09:48.470 | WARNING  | services.extractor:__init__:476 - No valid HUGGINGFACE_API_KEY — InLegalBERT model will be skipped; rule-based extraction only.

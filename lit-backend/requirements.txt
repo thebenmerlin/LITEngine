@@ -1,0 +1,12 @@
+fastapi>=0.115
+uvicorn[standard]>=0.34
+httpx>=0.28
+beautifulsoup4>=4.12
+python-dotenv>=1.0
+faiss-cpu>=1.13
+sentence-transformers>=3.3
+transformers>=4.47
+torch>=2.9
+pydantic>=2.10
+pydantic-settings>=2.7
+loguru>=0.7
