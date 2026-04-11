@@ -6,6 +6,7 @@ import {
   GitBranch,
   Brain,
   Settings,
+  FlaskConical,
 } from 'lucide-react'
 
 const NAV_ITEMS = [
@@ -14,6 +15,7 @@ const NAV_ITEMS = [
   { to: '/fact-extraction', label: 'Fact Extraction', icon: FileSearch },
   { to: '/argument-graph', label: 'Argument Graph', icon: GitBranch },
   { to: '/simulation', label: 'Simulation', icon: Brain },
+  { to: '/what-if', label: 'What-If Analyzer', icon: FlaskConical },
   { to: '/settings', label: 'Settings', icon: Settings },
 ]
 

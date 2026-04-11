@@ -3,7 +3,6 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
 
 from config import get_settings
 from utils.logger import setup_logger, get_logger
@@ -16,27 +15,35 @@ from routers import precedent, facts, graph, simulation
 
 logger = get_logger(__name__)
 
+_index_loaded = False
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Application startup and shutdown lifecycle."""
-    # Startup
+    global _index_loaded
+
+    # ---- Startup --------------------------------------------------------
     settings = get_settings()
     setup_logger(settings.LOG_LEVEL)
 
-    # Ensure logs directory exists
+    # Ensure logs and fixtures directories exist
     os.makedirs("logs", exist_ok=True)
+    os.makedirs("fixtures", exist_ok=True)
 
     # Configure cache TTL
     cache._ttl = settings.CACHE_TTL
 
+    # Startup log — never the key itself, just presence
     logger.info(f"Starting {settings.APP_NAME} v{settings.APP_VERSION}")
+    logger.info(f"Environment: {settings.ENV}")
     logger.info(f"CORS origins: {settings.ALLOWED_ORIGINS}")
     logger.info(f"Cache TTL: {settings.CACHE_TTL}s")
+    logger.info(f"HF API key: {'set' if settings.hf_key_set else 'not set'}")
 
     # Load FAISS precedent index
-    loaded = embedder_service.load_index()
-    if loaded:
+    _index_loaded = embedder_service.load_index()
+    if _index_loaded:
         stats = embedder_service.get_stats()
         logger.info(
             f"FAISS index loaded: {stats['total_documents']} documents, "
@@ -48,7 +55,9 @@ async def lifespan(app: FastAPI):
 
     yield
 
-    # Shutdown
+    # ---- Shutdown -------------------------------------------------------
+    logger.info("Shutting down — saving FAISS index…")
+    embedder_service.save_index()
     cache.clear()
     await embedder_service.close()
     await kanoon_service.close()
@@ -68,16 +77,22 @@ def create_app() -> FastAPI:
         lifespan=lifespan,
     )
 
-    # CORS middleware
+    # CORS middleware — production vs dev
+    if settings.IS_PRODUCTION:
+        origins = settings.allowed_origins_list
+        logger.info(f"Production CORS: allowing {len(origins)} origin(s): {origins}")
+    else:
+        origins = settings.cors_origins  # ["*"] in dev
+
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=settings.cors_origins,
+        allow_origins=origins,
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],
     )
 
-    # Health endpoint
+    # Health endpoint (root level)
     @app.get("/health")
     async def health():
         """Health check endpoint."""
@@ -85,6 +100,16 @@ def create_app() -> FastAPI:
             "app": settings.APP_NAME,
             "version": settings.APP_VERSION,
             "status": "healthy",
+        }
+
+    # Readiness endpoint (for Render health checks)
+    @app.get("/api/v1/health/ready")
+    async def health_ready():
+        """Readiness probe — returns readiness of all subsystems."""
+        return {
+            "ready": True,
+            "index_loaded": _index_loaded,
+            "hf_key_set": settings.hf_key_set,
         }
 
     # Register routers with /api/v1 prefix

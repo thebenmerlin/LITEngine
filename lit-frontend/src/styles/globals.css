@@ -47,4 +47,9 @@
   .divider {
     @apply border-gray-200 dark:border-gray-800;
   }
+
+  /* Skeleton pulse — light and dark mode */
+  .skeleton {
+    @apply animate-pulse rounded-md bg-gray-200 dark:bg-[#1F2937];
+  }
 }

@@ -1,0 +1,34 @@
+2026-04-12 00:03:53.371 | WARNING  | services.embedder:__init__:156 - No valid HUGGINGFACE_API_KEY — falling back to local SentenceTransformer model for embeddings
+2026-04-12 00:03:53.409 | WARNING  | services.kanoon:__init__:157 - USE_FIXTURES=true — serving data from fixtures only
+2026-04-12 00:03:53.424 | WARNING  | services.extractor:__init__:529 - No valid HUGGINGFACE_API_KEY — InLegalBERT model will be skipped; rule-based extraction only.
+2026-04-12 00:03:58.892 | WARNING  | services.embedder:__init__:156 - No valid HUGGINGFACE_API_KEY — falling back to local SentenceTransformer model for embeddings
+2026-04-12 00:03:58.928 | WARNING  | services.kanoon:__init__:157 - USE_FIXTURES=true — serving data from fixtures only
+2026-04-12 00:03:58.939 | WARNING  | services.extractor:__init__:529 - No valid HUGGINGFACE_API_KEY — InLegalBERT model will be skipped; rule-based extraction only.
+2026-04-12 00:03:58.953 | INFO     | main:lifespan:38 - Starting Legal Intelligence Terminal v0.1.0
+2026-04-12 00:03:58.953 | INFO     | main:lifespan:39 - Environment: development
+2026-04-12 00:03:58.953 | INFO     | main:lifespan:40 - CORS origins: http://localhost:3000,http://localhost:8080
+2026-04-12 00:03:58.953 | INFO     | main:lifespan:41 - Cache TTL: 3600s
+2026-04-12 00:03:58.953 | INFO     | main:lifespan:42 - HF API key: not set
+2026-04-12 00:03:58.954 | INFO     | services.embedder:load_index:505 - Loaded FAISS index from /Users/gajanan/Documents/LITEngine/lit-backend/fixtures/precedent_index.json: 11 vectors, 3 unique docs
+2026-04-12 00:03:58.955 | INFO     | main:lifespan:48 - FAISS index loaded: 3 documents, 11 vectors, 117.7 KB
+2026-04-12 00:04:23.505 | INFO     | main:lifespan:59 - Shutting down — saving FAISS index…
+2026-04-12 00:04:23.509 | INFO     | services.embedder:save_index:468 - Saved FAISS index (11 vectors) to /Users/gajanan/Documents/LITEngine/lit-backend/fixtures/precedent_index.json (117.7 KB)
+2026-04-12 00:04:23.509 | INFO     | utils.cache:clear:53 - Cache cleared (0 entries removed)
+2026-04-12 00:04:23.509 | INFO     | main:lifespan:64 - Application shutdown complete
+2026-04-12 00:05:59.850 | WARNING  | services.embedder:__init__:156 - No valid HUGGINGFACE_API_KEY — falling back to local SentenceTransformer model for embeddings
+2026-04-12 00:05:59.887 | WARNING  | services.kanoon:__init__:157 - USE_FIXTURES=true — serving data from fixtures only
+2026-04-12 00:05:59.901 | WARNING  | services.extractor:__init__:529 - No valid HUGGINGFACE_API_KEY — InLegalBERT model will be skipped; rule-based extraction only.
+2026-04-12 00:06:19.311 | WARNING  | services.embedder:__init__:156 - No valid HUGGINGFACE_API_KEY — falling back to local SentenceTransformer model for embeddings
+2026-04-12 00:06:19.350 | WARNING  | services.kanoon:__init__:157 - USE_FIXTURES=true — serving data from fixtures only
+2026-04-12 00:06:19.363 | WARNING  | services.extractor:__init__:529 - No valid HUGGINGFACE_API_KEY — InLegalBERT model will be skipped; rule-based extraction only.
+2026-04-12 00:06:19.378 | INFO     | main:lifespan:38 - Starting Legal Intelligence Terminal v0.1.0
+2026-04-12 00:06:19.378 | INFO     | main:lifespan:39 - Environment: development
+2026-04-12 00:06:19.378 | INFO     | main:lifespan:40 - CORS origins: http://localhost:3000,http://localhost:8080
+2026-04-12 00:06:19.378 | INFO     | main:lifespan:41 - Cache TTL: 3600s
+2026-04-12 00:06:19.378 | INFO     | main:lifespan:42 - HF API key: not set
+2026-04-12 00:06:19.379 | INFO     | services.embedder:load_index:505 - Loaded FAISS index from /Users/gajanan/Documents/LITEngine/lit-backend/fixtures/precedent_index.json: 11 vectors, 3 unique docs
+2026-04-12 00:06:19.379 | INFO     | main:lifespan:48 - FAISS index loaded: 3 documents, 11 vectors, 117.7 KB
+2026-04-12 00:06:54.656 | INFO     | main:lifespan:59 - Shutting down — saving FAISS index…
+2026-04-12 00:06:54.661 | INFO     | services.embedder:save_index:468 - Saved FAISS index (11 vectors) to /Users/gajanan/Documents/LITEngine/lit-backend/fixtures/precedent_index.json (117.7 KB)
+2026-04-12 00:06:54.661 | INFO     | utils.cache:clear:53 - Cache cleared (0 entries removed)
+2026-04-12 00:06:54.661 | INFO     | main:lifespan:64 - Application shutdown complete

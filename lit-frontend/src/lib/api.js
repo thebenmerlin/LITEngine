@@ -147,6 +147,44 @@ export async function checkTaskStatus(taskId) {
 }
 
 /* --------------------------------------------------------------------------- */
+/*  Graph                                                                       */
+/* --------------------------------------------------------------------------- */
+
+/**
+ * Build an argument graph from a StructuredCaseProfile.
+ *
+ * @param {{ caseProfile: object, precedents?: object[] }} params
+ * @returns {Promise<{ nodes: object[], edges: object[], weak_nodes: string[], node_count: number, edge_count: number }>}
+ */
+export async function buildGraph({ caseProfile, precedents = [] }) {
+  return request('/graph/build', {
+    method: 'POST',
+    body: JSON.stringify({ case_profile: caseProfile, precedents }),
+  })
+}
+
+/* --------------------------------------------------------------------------- */
+/*  Simulation                                                                  */
+/* --------------------------------------------------------------------------- */
+
+/**
+ * Predict a judicial outcome from a StructuredCaseProfile.
+ *
+ * @param {{ caseProfile: object, precedents?: object[], graphStats?: object | null }} params
+ * @returns {Promise<{ result: object, processing_time_ms: number, timestamp: string }>}
+ */
+export async function runSimulation({ caseProfile, precedents = [], graphStats = null }) {
+  return request('/simulation/predict', {
+    method: 'POST',
+    body: JSON.stringify({
+      case_profile: caseProfile,
+      precedents,
+      graph_stats: graphStats,
+    }),
+  })
+}
+
+/* --------------------------------------------------------------------------- */
 /*  Health                                                                      */
 /* --------------------------------------------------------------------------- */
 

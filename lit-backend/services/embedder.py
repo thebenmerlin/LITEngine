@@ -8,6 +8,14 @@ Provides:
   • Automatic text chunking of long judgments
   • Index persistence to JSON (fixtures/precedent_index.json)
   • Retry with exponential backoff for HF API rate limits
+
+NOTE — Render free tier cold start:
+  The Render free tier spins down instances after 15 minutes of inactivity.
+  On the first request after a cold start, the local SentenceTransformer model
+  (used as fallback when no valid HF API key is set) will be downloaded and
+  loaded from the Hugging Face Hub. This may take 30–60 seconds.
+  Subsequent requests are fast (the model stays cached in memory until the
+  instance is spun down).
 """
 
 import asyncio
