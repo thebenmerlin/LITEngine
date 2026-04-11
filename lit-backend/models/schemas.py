@@ -36,6 +36,7 @@ class SearchResult(BaseModel):
     court: Optional[str] = Field(None, description="Name of the court")
     date: Optional[str] = Field(None, description="Date of judgment (YYYY-MM-DD)")
     snippet: Optional[str] = Field(None, description="Excerpt / snippet from the search result")
+    similarity_score: Optional[float] = Field(None, ge=0.0, le=1.0, description="Semantic similarity score (0–1)")
 
 
 class PrecedentMatch(BaseModel):
@@ -177,35 +178,41 @@ class TaskStatus(BaseModel):
 
 # --- Graph Module ---
 
-class GraphBuildRequest(BaseModel):
-    text: str = Field(..., description="Text to build knowledge graph from")
-    entity_types: Optional[List[str]] = Field(
-        None,
-        description="Entity types to extract (e.g., 'person', 'organization', 'statute', 'case')"
-    )
-
-
 class GraphNode(BaseModel):
-    id: str
-    label: str
-    type: str
-    properties: Optional[Dict[str, Any]] = None
+    """A single node in the argument graph."""
+    id: str = Field(..., description="Unique node identifier")
+    label: str = Field(..., description="Display text")
+    type: str = Field(..., description="One of: CLAIM, EVIDENCE, STATUTE, PRECEDENT, ISSUE")
+    color: str = Field(..., description="Hex color for rendering")
+    shape: str = Field(..., description="Shape for rendering: rectangle, ellipse, diamond, hexagon, round-rectangle")
+    weight: float = Field(0.5, ge=0.0, le=1.0, description="Importance score (0–1)")
+    description: str = Field("", description="Short description of the node")
+    weak: bool = Field(False, description="True if node has no supporting evidence edges")
 
 
 class GraphEdge(BaseModel):
-    source: str
-    target: str
-    relation: str
-    weight: Optional[float] = None
+    """A directed edge between two graph nodes."""
+    id: str = Field(..., description="Unique edge identifier")
+    source: str = Field(..., description="Source node id")
+    target: str = Field(..., description="Target node id")
+    label: str = Field(..., description="Edge label for rendering")
+    type: str = Field(..., description="One of: supports, contradicts, cites, raises")
+    strength: float = Field(0.5, ge=0.0, le=1.0, description="Connection strength (0–1)")
 
 
-class KnowledgeGraph(BaseModel):
-    nodes: List[GraphNode]
-    edges: List[GraphEdge]
+class GraphBuildRequest(BaseModel):
+    case_profile: StructuredCaseProfile = Field(..., description="Structured case profile from fact extraction")
+    precedents: List[SearchResult] = Field(
+        default_factory=list,
+        max_length=3,
+        description="Optional precedent search results to add as PRECEDENT nodes (max 3)",
+    )
 
 
 class GraphBuildResponse(BaseModel):
-    graph: KnowledgeGraph
+    nodes: List[GraphNode]
+    edges: List[GraphEdge]
+    weak_nodes: List[str] = Field(default_factory=list, description="Node ids flagged as weak (no supporting evidence)")
     node_count: int
     edge_count: int
 
@@ -223,25 +230,44 @@ class GraphQueryResponse(BaseModel):
 
 # --- Simulation Module ---
 
+class ScoreComponent(BaseModel):
+    """One component of the judicial outcome scoring breakdown."""
+    component: str = Field(..., description="Component name")
+    weight: float = Field(..., ge=0.0, le=1.0, description="Component weight (0–1)")
+    raw_score: float = Field(..., ge=0.0, le=1.0, description="Raw score for this component (0–1)")
+    weighted_score: float = Field(..., ge=0.0, le=1.0, description="weight × raw_score")
+    explanation: str = Field(..., description="Human-readable reason for this score")
+
+
+class RiskAssessment(BaseModel):
+    level: str = Field(..., description="One of: Favorable, Uncertain, Unfavorable")
+    color: str = Field(..., description="Color for rendering: green, amber, red")
+
+
 class SimulationRequest(BaseModel):
-    facts: str = Field(..., description="Case facts to simulate")
-    scenario_type: str = Field(
-        "outcome",
-        description="Type of simulation: 'outcome', 'precedent_match', 'counter_argument'"
+    """Request for a judicial outcome prediction."""
+    case_profile: "StructuredCaseProfile" = Field(
+        ..., description="Structured case profile from fact extraction"
     )
-    parameters: Optional[Dict[str, Any]] = Field(
+    precedents: List["SearchResult"] = Field(
+        default_factory=list,
+        max_length=10,
+        description="Optional precedent search results (used for alignment scoring)",
+    )
+    graph_stats: Optional[Dict[str, Any]] = Field(
         None,
-        description="Additional simulation parameters"
+        description="Optional: { 'node_count': int, 'weak_nodes': list[str] } from argument graph",
     )
 
 
 class SimulationResult(BaseModel):
-    scenario_type: str
-    outcome: str
-    confidence: float
-    reasoning: str
-    relevant_precedents: Optional[List[str]] = None
-    risk_factors: Optional[List[str]] = None
+    """Full judicial outcome prediction with explainable scoring."""
+    win_probability: float = Field(..., ge=0.0, le=1.0, description="Petitioner win probability (0–1, clamped to [0.05, 0.95])")
+    risk_assessment: RiskAssessment
+    score_breakdown: List[ScoreComponent]
+    key_strengths: List[str] = Field(default_factory=list, description="Top 3 factors helping the case")
+    key_weaknesses: List[str] = Field(default_factory=list, description="Top 3 factors hurting the case")
+    recommendation: str = Field(..., description="1-2 sentence plain-English recommendation")
 
 
 class SimulationResponse(BaseModel):

@@ -1,11 +1,13 @@
-from fastapi import APIRouter
-from datetime import datetime
+from datetime import datetime, timezone
+from fastapi import APIRouter, HTTPException
+
 from models.schemas import (
     SimulationRequest,
     SimulationResponse,
+    SimulationResult,
     StatusResponse,
 )
-from services.simulator import simulator_service
+from services.simulator import predict_outcome
 from utils.logger import get_logger
 
 logger = get_logger(__name__)
@@ -19,21 +21,33 @@ async def simulation_status():
     return {"status": "ok", "module": "simulation"}
 
 
-@router.post("/run", response_model=SimulationResponse)
-async def run_simulation(request: SimulationRequest):
+@router.post("/predict", response_model=SimulationResponse)
+async def predict(request: SimulationRequest):
     """
-    Run a legal case simulation.
+    Predict a judicial outcome for the petitioner based on a
+    StructuredCaseProfile, optional precedents, and optional graph stats.
 
-    Analyzes case facts and simulates outcomes, finds relevant
-    precedents, or generates counter-arguments.
+    Returns an explainable score breakdown — every component is transparent.
     """
     logger.info(
-        f"Running simulation: type='{request.scenario_type}', "
-        f"facts={len(request.facts)} chars"
+        f"Predicting outcome: {len(request.case_profile.legal_issues)} issues, "
+        f"{len(request.case_profile.ipc_sections)} sections, "
+        f"{len(request.precedents)} precedents, "
+        f"graph_stats={'yes' if request.graph_stats else 'no'}"
     )
-    result = await simulator_service.run_simulation(
-        facts=request.facts,
-        scenario_type=request.scenario_type,
-        parameters=request.parameters,
+
+    try:
+        result: SimulationResult = predict_outcome(
+            profile=request.case_profile,
+            precedents=request.precedents,
+            graph_stats=request.graph_stats,
+        )
+    except Exception as exc:
+        logger.error(f"Simulation prediction failed: {exc}")
+        raise HTTPException(status_code=500, detail=str(exc))
+
+    return SimulationResponse(
+        result=result,
+        processing_time_ms=0,  # heuristic — near-instant
+        timestamp=datetime.now(timezone.utc),
     )
-    return SimulationResponse(**result)

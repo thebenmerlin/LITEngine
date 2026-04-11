@@ -1,0 +1,57 @@
+2026-04-11 17:00:05.299 | INFO     | services.graph_builder:build_argument_graph:339 - Built argument graph: 15 nodes, 32 edges, 0 weak claims
+2026-04-11 17:00:13.969 | WARNING  | services.embedder:__init__:148 - No valid HUGGINGFACE_API_KEY — falling back to local SentenceTransformer model for embeddings
+2026-04-11 17:00:14.024 | WARNING  | services.extractor:__init__:529 - No valid HUGGINGFACE_API_KEY — InLegalBERT model will be skipped; rule-based extraction only.
+2026-04-11 17:00:14.038 | INFO     | main:lifespan:33 - Starting Legal Intelligence Terminal v0.1.0
+2026-04-11 17:00:14.038 | INFO     | main:lifespan:34 - CORS origins: http://localhost:3000,http://localhost:8080
+2026-04-11 17:00:14.038 | INFO     | main:lifespan:35 - Cache TTL: 3600s
+2026-04-11 17:00:14.039 | INFO     | services.embedder:load_index:497 - Loaded FAISS index from /Users/gajanan/Documents/LITEngine/lit-backend/fixtures/precedent_index.json: 11 vectors, 3 unique docs
+2026-04-11 17:00:14.039 | INFO     | main:lifespan:41 - FAISS index loaded: 3 documents, 11 vectors, 117.7 KB
+2026-04-11 17:00:39.121 | INFO     | routers.graph:build_graph:33 - Building argument graph: 2 issues, 3 sections, 3 facts, 2 precedents
+2026-04-11 17:00:39.121 | INFO     | services.graph_builder:build_argument_graph:339 - Built argument graph: 15 nodes, 32 edges, 0 weak claims
+2026-04-11 17:00:49.939 | INFO     | routers.graph:build_graph:33 - Building argument graph: 1 issues, 1 sections, 0 facts, 0 precedents
+2026-04-11 17:00:49.939 | INFO     | services.graph_builder:build_argument_graph:339 - Built argument graph: 5 nodes, 7 edges, 0 weak claims
+2026-04-11 17:01:28.460 | INFO     | routers.graph:build_graph:33 - Building argument graph: 1 issues, 1 sections, 0 facts, 0 precedents
+2026-04-11 17:01:28.460 | INFO     | services.graph_builder:build_argument_graph:339 - Built argument graph: 4 nodes, 5 edges, 0 weak claims
+2026-04-11 17:01:28.480 | INFO     | routers.graph:build_graph:33 - Building argument graph: 1 issues, 1 sections, 1 facts, 0 precedents
+2026-04-11 17:01:28.481 | INFO     | services.graph_builder:build_argument_graph:339 - Built argument graph: 5 nodes, 7 edges, 0 weak claims
+2026-04-11 17:01:39.638 | INFO     | utils.cache:clear:53 - Cache cleared (0 entries removed)
+2026-04-11 17:01:39.638 | INFO     | main:lifespan:55 - Application shutdown complete
+2026-04-11 17:01:40.902 | WARNING  | services.embedder:__init__:148 - No valid HUGGINGFACE_API_KEY — falling back to local SentenceTransformer model for embeddings
+2026-04-11 17:01:40.954 | WARNING  | services.extractor:__init__:529 - No valid HUGGINGFACE_API_KEY — InLegalBERT model will be skipped; rule-based extraction only.
+2026-04-11 17:01:40.969 | INFO     | main:lifespan:33 - Starting Legal Intelligence Terminal v0.1.0
+2026-04-11 17:01:40.969 | INFO     | main:lifespan:34 - CORS origins: http://localhost:3000,http://localhost:8080
+2026-04-11 17:01:40.969 | INFO     | main:lifespan:35 - Cache TTL: 3600s
+2026-04-11 17:01:40.970 | INFO     | services.embedder:load_index:497 - Loaded FAISS index from /Users/gajanan/Documents/LITEngine/lit-backend/fixtures/precedent_index.json: 11 vectors, 3 unique docs
+2026-04-11 17:01:40.970 | INFO     | main:lifespan:41 - FAISS index loaded: 3 documents, 11 vectors, 117.7 KB
+2026-04-11 17:01:53.606 | INFO     | routers.graph:build_graph:33 - Building argument graph: 1 issues, 1 sections, 0 facts, 0 precedents
+2026-04-11 17:01:53.607 | INFO     | services.graph_builder:build_argument_graph:344 - Built argument graph: 4 nodes, 5 edges, 2 weak claims
+2026-04-11 17:02:12.388 | INFO     | routers.graph:build_graph:33 - Building argument graph: 1 issues, 1 sections, 1 facts, 0 precedents
+2026-04-11 17:02:12.389 | INFO     | services.graph_builder:build_argument_graph:344 - Built argument graph: 5 nodes, 7 edges, 0 weak claims
+2026-04-11 17:20:23.107 | INFO     | services.simulator:predict_outcome:371 - Outcome prediction: win_prob=0.67, risk=Uncertain, strengths=3, weaknesses=3
+2026-04-11 17:21:56.977 | INFO     | services.simulator:predict_outcome:364 - Outcome prediction: win_prob=0.80, risk=Favorable, strengths=3, weaknesses=3
+2026-04-11 17:21:56.977 | INFO     | services.simulator:predict_outcome:364 - Outcome prediction: win_prob=0.45, risk=Unfavorable, strengths=2, weaknesses=3
+2026-04-11 17:21:56.977 | INFO     | services.simulator:predict_outcome:364 - Outcome prediction: win_prob=0.45, risk=Unfavorable, strengths=2, weaknesses=3
+2026-04-11 17:21:56.977 | INFO     | services.simulator:predict_outcome:364 - Outcome prediction: win_prob=0.59, risk=Uncertain, strengths=3, weaknesses=3
+2026-04-11 17:22:02.446 | WARNING  | services.embedder:__init__:148 - No valid HUGGINGFACE_API_KEY — falling back to local SentenceTransformer model for embeddings
+2026-04-11 17:22:02.502 | WARNING  | services.extractor:__init__:529 - No valid HUGGINGFACE_API_KEY — InLegalBERT model will be skipped; rule-based extraction only.
+2026-04-11 17:22:02.517 | INFO     | main:lifespan:33 - Starting Legal Intelligence Terminal v0.1.0
+2026-04-11 17:22:02.517 | INFO     | main:lifespan:34 - CORS origins: http://localhost:3000,http://localhost:8080
+2026-04-11 17:22:02.517 | INFO     | main:lifespan:35 - Cache TTL: 3600s
+2026-04-11 17:22:02.519 | INFO     | services.embedder:load_index:497 - Loaded FAISS index from /Users/gajanan/Documents/LITEngine/lit-backend/fixtures/precedent_index.json: 11 vectors, 3 unique docs
+2026-04-11 17:22:02.519 | INFO     | main:lifespan:41 - FAISS index loaded: 3 documents, 11 vectors, 117.7 KB
+2026-04-11 17:22:02.521 | INFO     | utils.cache:clear:53 - Cache cleared (0 entries removed)
+2026-04-11 17:22:02.521 | INFO     | main:lifespan:55 - Application shutdown complete
+2026-04-11 17:24:33.680 | INFO     | utils.cache:clear:53 - Cache cleared (0 entries removed)
+2026-04-11 17:24:33.681 | INFO     | main:lifespan:55 - Application shutdown complete
+2026-04-11 17:24:40.988 | WARNING  | services.embedder:__init__:148 - No valid HUGGINGFACE_API_KEY — falling back to local SentenceTransformer model for embeddings
+2026-04-11 17:24:41.040 | WARNING  | services.extractor:__init__:529 - No valid HUGGINGFACE_API_KEY — InLegalBERT model will be skipped; rule-based extraction only.
+2026-04-11 17:24:41.053 | INFO     | main:lifespan:33 - Starting Legal Intelligence Terminal v0.1.0
+2026-04-11 17:24:41.053 | INFO     | main:lifespan:34 - CORS origins: http://localhost:3000,http://localhost:8080
+2026-04-11 17:24:41.053 | INFO     | main:lifespan:35 - Cache TTL: 3600s
+2026-04-11 17:24:41.055 | INFO     | services.embedder:load_index:497 - Loaded FAISS index from /Users/gajanan/Documents/LITEngine/lit-backend/fixtures/precedent_index.json: 11 vectors, 3 unique docs
+2026-04-11 17:24:41.055 | INFO     | main:lifespan:41 - FAISS index loaded: 3 documents, 11 vectors, 117.7 KB
+2026-04-11 17:25:36.874 | INFO     | routers.simulation:predict:32 - Predicting outcome: 2 issues, 3 sections, 2 precedents, graph_stats=yes
+2026-04-11 17:25:36.874 | INFO     | services.simulator:predict_outcome:364 - Outcome prediction: win_prob=0.86, risk=Favorable, strengths=3, weaknesses=3
+2026-04-11 17:26:30.181 | INFO     | utils.cache:clear:53 - Cache cleared (0 entries removed)
+2026-04-11 17:26:30.181 | INFO     | main:lifespan:55 - Application shutdown complete
+2026-04-11 18:09:19.610 | INFO     | services.simulator:predict_outcome:364 - Outcome prediction: win_prob=0.83, risk=Favorable, strengths=3, weaknesses=3

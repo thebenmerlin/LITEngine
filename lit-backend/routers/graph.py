@@ -1,4 +1,5 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
+
 from models.schemas import (
     GraphBuildRequest,
     GraphBuildResponse,
@@ -6,6 +7,7 @@ from models.schemas import (
     GraphQueryResponse,
     StatusResponse,
 )
+from services.graph_builder import build_argument_graph
 from utils.logger import get_logger
 
 logger = get_logger(__name__)
@@ -22,18 +24,29 @@ async def graph_status():
 @router.post("/build", response_model=GraphBuildResponse)
 async def build_graph(request: GraphBuildRequest):
     """
-    Build a knowledge graph from legal text.
+    Build an argument graph from a StructuredCaseProfile.
 
-    Extracts entities (persons, organizations, statutes, cases)
-    and their relationships to construct a structured graph.
+    Creates nodes for issues, claims, statutes, evidence, and precedents,
+    with edges representing supports/contradicts/cites/raises relationships.
+    Flags weak claims (no supporting evidence).
     """
-    logger.info(f"Building graph from text ({len(request.text)} chars)")
-    # TODO: Implement NER and relationship extraction
-    return GraphBuildResponse(
-        graph={"nodes": [], "edges": []},
-        node_count=0,
-        edge_count=0,
+    logger.info(
+        f"Building argument graph: {len(request.case_profile.legal_issues)} issues, "
+        f"{len(request.case_profile.ipc_sections)} sections, "
+        f"{len(request.case_profile.key_facts)} facts, "
+        f"{len(request.precedents)} precedents"
     )
+
+    try:
+        result = build_argument_graph(
+            profile=request.case_profile,
+            precedents=request.precedents,
+        )
+    except Exception as exc:
+        logger.error(f"Failed to build argument graph: {exc}")
+        raise HTTPException(status_code=500, detail=str(exc))
+
+    return GraphBuildResponse(**result)
 
 
 @router.post("/query", response_model=GraphQueryResponse)
@@ -41,7 +54,7 @@ async def query_graph(request: GraphQueryRequest):
     """
     Query the knowledge graph.
 
-    Searches for entities and relationships matching the query.
+    Searches for nodes and edges matching the query text.
     """
     logger.info(f"Graph query: '{request.query}'")
     # TODO: Implement graph query with traversal and filtering

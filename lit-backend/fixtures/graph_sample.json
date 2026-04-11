@@ -1,0 +1,415 @@
+{
+  "nodes": [
+    {
+      "id": "issue:whether_the_confession_made_to_a_police_officer_is_admissible_under_section_25_of_the_evidence_act",
+      "label": "Whether the confession made to a police officer is admissible under Section 25 of the Evidence Act",
+      "type": "ISSUE",
+      "color": "#1E3A5F",
+      "shape": "round-rectangle",
+      "weight": 0.7,
+      "description": "Whether the confession made to a police officer is admissible under Section 25 of the Evidence Act",
+      "weak": false
+    },
+    {
+      "id": "issue:whether_the_investigation_violated_section_167_crpc_timelines",
+      "label": "Whether the investigation violated Section 167 CrPC timelines",
+      "type": "ISSUE",
+      "color": "#1E3A5F",
+      "shape": "round-rectangle",
+      "weight": 0.7,
+      "description": "Whether the investigation violated Section 167 CrPC timelines",
+      "weak": false
+    },
+    {
+      "id": "claim:state_of_maharashtra__criminal_claim",
+      "label": "State of Maharashtra — criminal claim",
+      "type": "CLAIM",
+      "color": "#1B2A4A",
+      "shape": "rectangle",
+      "weight": 0.8,
+      "description": "Claim asserted by the petitioner: State of Maharashtra | Relief: Quashing of FIR No. 45/2023 and grant of anticipatory bail under Section 438 CrPC",
+      "weak": false
+    },
+    {
+      "id": "claim:ramesh_kumar__ramesh_arjun__defense",
+      "label": "Ramesh Kumar @ Ramesh Arjun — defense",
+      "type": "CLAIM",
+      "color": "#1B2A4A",
+      "shape": "rectangle",
+      "weight": 0.8,
+      "description": "Defense asserted by the respondent: Ramesh Kumar @ Ramesh Arjun",
+      "weak": false
+    },
+    {
+      "id": "statute:section_302",
+      "label": "Section 302",
+      "type": "STATUTE",
+      "color": "#065F46",
+      "shape": "diamond",
+      "weight": 0.85,
+      "description": "Statutory provision: Section 302",
+      "weak": false
+    },
+    {
+      "id": "statute:section_201",
+      "label": "Section 201",
+      "type": "STATUTE",
+      "color": "#065F46",
+      "shape": "diamond",
+      "weight": 0.85,
+      "description": "Statutory provision: Section 201",
+      "weak": false
+    },
+    {
+      "id": "statute:section_34",
+      "label": "Section 34",
+      "type": "STATUTE",
+      "color": "#065F46",
+      "shape": "diamond",
+      "weight": 0.85,
+      "description": "Statutory provision: Section 34",
+      "weak": false
+    },
+    {
+      "id": "act:indian_penal_code,_1860",
+      "label": "Indian Penal Code, 1860",
+      "type": "STATUTE",
+      "color": "#065F46",
+      "shape": "diamond",
+      "weight": 0.6,
+      "description": "Act referenced: Indian Penal Code, 1860",
+      "weak": false
+    },
+    {
+      "id": "act:code_of_criminal_procedure,_1973",
+      "label": "Code of Criminal Procedure, 1973",
+      "type": "STATUTE",
+      "color": "#065F46",
+      "shape": "diamond",
+      "weight": 0.6,
+      "description": "Act referenced: Code of Criminal Procedure, 1973",
+      "weak": false
+    },
+    {
+      "id": "act:indian_evidence_act,_1872",
+      "label": "Indian Evidence Act, 1872",
+      "type": "STATUTE",
+      "color": "#065F46",
+      "shape": "diamond",
+      "weight": 0.6,
+      "description": "Act referenced: Indian Evidence Act, 1872",
+      "weak": false
+    },
+    {
+      "id": "evidence:fact_0",
+      "label": "The deceased was last seen alive at 9:30 PM near the market area",
+      "type": "EVIDENCE",
+      "color": "#374151",
+      "shape": "ellipse",
+      "weight": 0.6,
+      "description": "The deceased was last seen alive at 9:30 PM near the market area",
+      "weak": false
+    },
+    {
+      "id": "evidence:fact_1",
+      "label": "Post-mortem confirmed death due to strangulation",
+      "type": "EVIDENCE",
+      "color": "#374151",
+      "shape": "ellipse",
+      "weight": 0.6,
+      "description": "Post-mortem confirmed death due to strangulation",
+      "weak": false
+    },
+    {
+      "id": "evidence:fact_2",
+      "label": "The accused and deceased were known to each other for over 5 years",
+      "type": "EVIDENCE",
+      "color": "#374151",
+      "shape": "ellipse",
+      "weight": 0.6,
+      "description": "The accused and deceased were known to each other for over 5 years",
+      "weak": false
+    },
+    {
+      "id": "precedent:11990",
+      "label": "Kesavananda Bharati Sripadagalvaru & Ors vs State of Kerala & Anr",
+      "type": "PRECEDENT",
+      "color": "#92400E",
+      "shape": "hexagon",
+      "weight": 0.5,
+      "description": "Kesavananda Bharati Sripadagalvaru & Ors vs State of Kerala & Anr | Supreme Court of India | 1973-04-24",
+      "weak": false
+    },
+    {
+      "id": "precedent:157783",
+      "label": "Maneka Gandhi vs Union of India & Ors",
+      "type": "PRECEDENT",
+      "color": "#92400E",
+      "shape": "hexagon",
+      "weight": 0.5,
+      "description": "Maneka Gandhi vs Union of India & Ors | Supreme Court of India | 1978-01-25",
+      "weak": false
+    }
+  ],
+  "edges": [
+    {
+      "id": "edge_claim:state_of_maharashtra__criminal_claim_raises_issue:whether_the_confession_made_to_a_police_officer_is_admissible_under_section_25_of_the_evidence_act",
+      "source": "claim:state_of_maharashtra__criminal_claim",
+      "target": "issue:whether_the_confession_made_to_a_police_officer_is_admissible_under_section_25_of_the_evidence_act",
+      "label": "raises",
+      "type": "raises",
+      "strength": 0.7
+    },
+    {
+      "id": "edge_claim:state_of_maharashtra__criminal_claim_raises_issue:whether_the_investigation_violated_section_167_crpc_timelines",
+      "source": "claim:state_of_maharashtra__criminal_claim",
+      "target": "issue:whether_the_investigation_violated_section_167_crpc_timelines",
+      "label": "raises",
+      "type": "raises",
+      "strength": 0.7
+    },
+    {
+      "id": "edge_claim:ramesh_kumar__ramesh_arjun__defense_raises_issue:whether_the_confession_made_to_a_police_officer_is_admissible_under_section_25_of_the_evidence_act",
+      "source": "claim:ramesh_kumar__ramesh_arjun__defense",
+      "target": "issue:whether_the_confession_made_to_a_police_officer_is_admissible_under_section_25_of_the_evidence_act",
+      "label": "raises",
+      "type": "raises",
+      "strength": 0.7
+    },
+    {
+      "id": "edge_claim:ramesh_kumar__ramesh_arjun__defense_raises_issue:whether_the_investigation_violated_section_167_crpc_timelines",
+      "source": "claim:ramesh_kumar__ramesh_arjun__defense",
+      "target": "issue:whether_the_investigation_violated_section_167_crpc_timelines",
+      "label": "raises",
+      "type": "raises",
+      "strength": 0.7
+    },
+    {
+      "id": "edge_statute:section_302_raises_issue:whether_the_confession_made_to_a_police_officer_is_admissible_under_section_25_of_the_evidence_act",
+      "source": "statute:section_302",
+      "target": "issue:whether_the_confession_made_to_a_police_officer_is_admissible_under_section_25_of_the_evidence_act",
+      "label": "relates to",
+      "type": "raises",
+      "strength": 0.8
+    },
+    {
+      "id": "edge_statute:section_302_raises_issue:whether_the_investigation_violated_section_167_crpc_timelines",
+      "source": "statute:section_302",
+      "target": "issue:whether_the_investigation_violated_section_167_crpc_timelines",
+      "label": "referenced",
+      "type": "raises",
+      "strength": 0.4
+    },
+    {
+      "id": "edge_statute:section_302_to_claim:state_of_maharashtra__criminal_claim",
+      "source": "statute:section_302",
+      "target": "claim:state_of_maharashtra__criminal_claim",
+      "label": "supports",
+      "type": "supports",
+      "strength": 0.6
+    },
+    {
+      "id": "edge_statute:section_302_to_claim:ramesh_kumar__ramesh_arjun__defense",
+      "source": "statute:section_302",
+      "target": "claim:ramesh_kumar__ramesh_arjun__defense",
+      "label": "supports",
+      "type": "supports",
+      "strength": 0.6
+    },
+    {
+      "id": "edge_statute:section_201_raises_issue:whether_the_confession_made_to_a_police_officer_is_admissible_under_section_25_of_the_evidence_act",
+      "source": "statute:section_201",
+      "target": "issue:whether_the_confession_made_to_a_police_officer_is_admissible_under_section_25_of_the_evidence_act",
+      "label": "relates to",
+      "type": "raises",
+      "strength": 0.8
+    },
+    {
+      "id": "edge_statute:section_201_raises_issue:whether_the_investigation_violated_section_167_crpc_timelines",
+      "source": "statute:section_201",
+      "target": "issue:whether_the_investigation_violated_section_167_crpc_timelines",
+      "label": "referenced",
+      "type": "raises",
+      "strength": 0.4
+    },
+    {
+      "id": "edge_statute:section_201_to_claim:state_of_maharashtra__criminal_claim",
+      "source": "statute:section_201",
+      "target": "claim:state_of_maharashtra__criminal_claim",
+      "label": "supports",
+      "type": "supports",
+      "strength": 0.6
+    },
+    {
+      "id": "edge_statute:section_201_to_claim:ramesh_kumar__ramesh_arjun__defense",
+      "source": "statute:section_201",
+      "target": "claim:ramesh_kumar__ramesh_arjun__defense",
+      "label": "supports",
+      "type": "supports",
+      "strength": 0.6
+    },
+    {
+      "id": "edge_statute:section_34_raises_issue:whether_the_confession_made_to_a_police_officer_is_admissible_under_section_25_of_the_evidence_act",
+      "source": "statute:section_34",
+      "target": "issue:whether_the_confession_made_to_a_police_officer_is_admissible_under_section_25_of_the_evidence_act",
+      "label": "relates to",
+      "type": "raises",
+      "strength": 0.8
+    },
+    {
+      "id": "edge_statute:section_34_raises_issue:whether_the_investigation_violated_section_167_crpc_timelines",
+      "source": "statute:section_34",
+      "target": "issue:whether_the_investigation_violated_section_167_crpc_timelines",
+      "label": "referenced",
+      "type": "raises",
+      "strength": 0.4
+    },
+    {
+      "id": "edge_statute:section_34_to_claim:state_of_maharashtra__criminal_claim",
+      "source": "statute:section_34",
+      "target": "claim:state_of_maharashtra__criminal_claim",
+      "label": "supports",
+      "type": "supports",
+      "strength": 0.6
+    },
+    {
+      "id": "edge_statute:section_34_to_claim:ramesh_kumar__ramesh_arjun__defense",
+      "source": "statute:section_34",
+      "target": "claim:ramesh_kumar__ramesh_arjun__defense",
+      "label": "supports",
+      "type": "supports",
+      "strength": 0.6
+    },
+    {
+      "id": "edge_act:indian_penal_code,_1860_to_claim:state_of_maharashtra__criminal_claim",
+      "source": "act:indian_penal_code,_1860",
+      "target": "claim:state_of_maharashtra__criminal_claim",
+      "label": "cited by",
+      "type": "supports",
+      "strength": 0.4
+    },
+    {
+      "id": "edge_act:indian_penal_code,_1860_to_claim:ramesh_kumar__ramesh_arjun__defense",
+      "source": "act:indian_penal_code,_1860",
+      "target": "claim:ramesh_kumar__ramesh_arjun__defense",
+      "label": "cited by",
+      "type": "supports",
+      "strength": 0.4
+    },
+    {
+      "id": "edge_act:code_of_criminal_procedure,_1973_to_claim:state_of_maharashtra__criminal_claim",
+      "source": "act:code_of_criminal_procedure,_1973",
+      "target": "claim:state_of_maharashtra__criminal_claim",
+      "label": "cited by",
+      "type": "supports",
+      "strength": 0.4
+    },
+    {
+      "id": "edge_act:code_of_criminal_procedure,_1973_to_claim:ramesh_kumar__ramesh_arjun__defense",
+      "source": "act:code_of_criminal_procedure,_1973",
+      "target": "claim:ramesh_kumar__ramesh_arjun__defense",
+      "label": "cited by",
+      "type": "supports",
+      "strength": 0.4
+    },
+    {
+      "id": "edge_act:indian_evidence_act,_1872_to_claim:state_of_maharashtra__criminal_claim",
+      "source": "act:indian_evidence_act,_1872",
+      "target": "claim:state_of_maharashtra__criminal_claim",
+      "label": "cited by",
+      "type": "supports",
+      "strength": 0.4
+    },
+    {
+      "id": "edge_act:indian_evidence_act,_1872_to_claim:ramesh_kumar__ramesh_arjun__defense",
+      "source": "act:indian_evidence_act,_1872",
+      "target": "claim:ramesh_kumar__ramesh_arjun__defense",
+      "label": "cited by",
+      "type": "supports",
+      "strength": 0.4
+    },
+    {
+      "id": "edge_evidence:fact_0_supports_claim:state_of_maharashtra__criminal_claim",
+      "source": "evidence:fact_0",
+      "target": "claim:state_of_maharashtra__criminal_claim",
+      "label": "supports",
+      "type": "supports",
+      "strength": 0.65
+    },
+    {
+      "id": "edge_evidence:fact_0_supports_claim:ramesh_kumar__ramesh_arjun__defense",
+      "source": "evidence:fact_0",
+      "target": "claim:ramesh_kumar__ramesh_arjun__defense",
+      "label": "context for",
+      "type": "supports",
+      "strength": 0.3
+    },
+    {
+      "id": "edge_evidence:fact_1_supports_claim:state_of_maharashtra__criminal_claim",
+      "source": "evidence:fact_1",
+      "target": "claim:state_of_maharashtra__criminal_claim",
+      "label": "supports",
+      "type": "supports",
+      "strength": 0.65
+    },
+    {
+      "id": "edge_evidence:fact_1_supports_claim:ramesh_kumar__ramesh_arjun__defense",
+      "source": "evidence:fact_1",
+      "target": "claim:ramesh_kumar__ramesh_arjun__defense",
+      "label": "context for",
+      "type": "supports",
+      "strength": 0.3
+    },
+    {
+      "id": "edge_evidence:fact_2_supports_claim:state_of_maharashtra__criminal_claim",
+      "source": "evidence:fact_2",
+      "target": "claim:state_of_maharashtra__criminal_claim",
+      "label": "supports",
+      "type": "supports",
+      "strength": 0.65
+    },
+    {
+      "id": "edge_evidence:fact_2_supports_claim:ramesh_kumar__ramesh_arjun__defense",
+      "source": "evidence:fact_2",
+      "target": "claim:ramesh_kumar__ramesh_arjun__defense",
+      "label": "context for",
+      "type": "supports",
+      "strength": 0.3
+    },
+    {
+      "id": "edge_precedent:11990_cites_issue:whether_the_confession_made_to_a_police_officer_is_admissible_under_section_25_of_the_evidence_act",
+      "source": "precedent:11990",
+      "target": "issue:whether_the_confession_made_to_a_police_officer_is_admissible_under_section_25_of_the_evidence_act",
+      "label": "cites",
+      "type": "cites",
+      "strength": 0.5
+    },
+    {
+      "id": "edge_precedent:11990_cites_issue:whether_the_investigation_violated_section_167_crpc_timelines",
+      "source": "precedent:11990",
+      "target": "issue:whether_the_investigation_violated_section_167_crpc_timelines",
+      "label": "cites",
+      "type": "cites",
+      "strength": 0.5
+    },
+    {
+      "id": "edge_precedent:157783_cites_issue:whether_the_confession_made_to_a_police_officer_is_admissible_under_section_25_of_the_evidence_act",
+      "source": "precedent:157783",
+      "target": "issue:whether_the_confession_made_to_a_police_officer_is_admissible_under_section_25_of_the_evidence_act",
+      "label": "cites",
+      "type": "cites",
+      "strength": 0.5
+    },
+    {
+      "id": "edge_precedent:157783_cites_issue:whether_the_investigation_violated_section_167_crpc_timelines",
+      "source": "precedent:157783",
+      "target": "issue:whether_the_investigation_violated_section_167_crpc_timelines",
+      "label": "cites",
+      "type": "cites",
+      "strength": 0.5
+    }
+  ],
+  "weak_nodes": [],
+  "node_count": 15,
+  "edge_count": 32
+}

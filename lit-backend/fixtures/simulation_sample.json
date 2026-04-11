@@ -1,0 +1,55 @@
+{
+  "win_probability": 0.75,
+  "risk_assessment": {
+    "level": "Favorable",
+    "color": "green"
+  },
+  "score_breakdown": [
+    {
+      "component": "Precedent Alignment",
+      "weight": 0.35,
+      "raw_score": 0.78,
+      "weighted_score": 0.273,
+      "explanation": "Average similarity 0.68 across 3 precedent(s); strongest precedent at 0.82 (boosted +0.10 for high alignment)."
+    },
+    {
+      "component": "Statutory Strength",
+      "weight": 0.25,
+      "raw_score": 0.75,
+      "weighted_score": 0.1875,
+      "explanation": "7 statutes referenced — strong statutory coverage. Criminal case with IPC sections (+0.05)."
+    },
+    {
+      "component": "Argument Completeness",
+      "weight": 0.2,
+      "raw_score": 0.82,
+      "weighted_score": 0.164,
+      "explanation": "14/17 nodes are supported; 3 weak node(s) lack evidentiary backing."
+    },
+    {
+      "component": "Case Complexity",
+      "weight": 0.1,
+      "raw_score": 0.65,
+      "weighted_score": 0.065,
+      "explanation": "4 legal issues — moderate complexity."
+    },
+    {
+      "component": "Court Level",
+      "weight": 0.1,
+      "raw_score": 0.6,
+      "weighted_score": 0.06,
+      "explanation": "High Court — moderate bar, established appellate review."
+    }
+  ],
+  "key_strengths": [
+    "Strong precedent alignment with past judgments.",
+    "5 key facts extracted — solid evidentiary base.",
+    "14/17 nodes are supported; 3 weak node(s) lack evidentiary backing."
+  ],
+  "key_weaknesses": [
+    "3 unsupported argument node(s) in the graph.",
+    "4 legal issues — moderate complexity.",
+    "High Court — moderate bar, established appellate review."
+  ],
+  "recommendation": "The case appears favorable for the petitioner. Consider addressing: 3 unsupported argument node(s) in the graph."
+}
