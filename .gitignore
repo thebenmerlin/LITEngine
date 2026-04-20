@@ -1,14 +1,16 @@
 # Root — ignore both sub-project ignores and IDE/OS artifacts
-/lit-backend/__pycache__/
-/lit-backend/*.pyc
+/lit-backend/**/__pycache__/
+/lit-backend/**/*.py[cod]
 /lit-backend/.env
 /lit-backend/logs/
 /lit-backend/venv/
+/lit-backend/.pytest_cache/
 
 /lit-frontend/node_modules/
 /lit-frontend/dist/
 /lit-frontend/.env
 /lit-frontend/.env.local
+/lit-frontend/.eslintcache
 
 # OS / IDE
 .DS_Store
