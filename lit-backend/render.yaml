@@ -11,7 +11,7 @@ services:
       - key: KANOON_BASE_URL
         value: https://indiankanoon.org
       - key: ALLOWED_ORIGINS
-        value: https://your-app.vercel.app
+        sync: false
       - key: USE_FIXTURES
         value: "false"
       - key: PORT
