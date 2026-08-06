@@ -1,18 +1,27 @@
 from datetime import datetime, timezone
 from fastapi import APIRouter, HTTPException
 
+from config import get_settings
 from models.schemas import (
+    OldVsNewComparison,
     SimulationRequest,
     SimulationResponse,
     SimulationResult,
     StatusResponse,
 )
 from services.simulator import predict_outcome
+from services.outcome_model import (
+    COMPONENT_NAME_TO_FEATURE_KEY,
+    ml_result_to_simulation_result,
+    predict_ml_outcome,
+)
 from utils.logger import get_logger
 
 logger = get_logger(__name__)
 
 router = APIRouter(prefix="/simulation", tags=["Simulation"])
+
+_VALID_PRIMARY = {"new_model", "old_heuristic"}
 
 
 @router.get("/", response_model=StatusResponse)
@@ -33,11 +42,12 @@ async def predict(request: SimulationRequest):
         f"Predicting outcome: {len(request.case_profile.legal_issues)} issues, "
         f"{len(request.case_profile.ipc_sections)} sections, "
         f"{len(request.precedents)} precedents, "
-        f"graph_stats={'yes' if request.graph_stats else 'no'}"
+        f"graph_stats={'yes' if request.graph_stats else 'no'}, "
+        f"appellant_type={request.appellant_type}"
     )
 
     try:
-        result: SimulationResult = predict_outcome(
+        heuristic_result: SimulationResult = predict_outcome(
             profile=request.case_profile,
             precedents=request.precedents,
             graph_stats=request.graph_stats,
@@ -46,8 +56,33 @@ async def predict(request: SimulationRequest):
         logger.error(f"Simulation prediction failed: {exc}")
         raise HTTPException(status_code=500, detail=str(exc))
 
+    # Reuse the raw component scores the heuristic already computed —
+    # the trained model consumes the same 5 features, not a re-extraction.
+    raw_scores = {
+        COMPONENT_NAME_TO_FEATURE_KEY[sc.component]: sc.raw_score
+        for sc in heuristic_result.score_breakdown
+        if sc.component in COMPONENT_NAME_TO_FEATURE_KEY
+    }
+    ml_result = predict_ml_outcome(raw_scores, request.appellant_type)
+
+    settings = get_settings()
+    primary = settings.OUTCOME_MODEL_PRIMARY if settings.OUTCOME_MODEL_PRIMARY in _VALID_PRIMARY else "new_model"
+    if not ml_result.model_loaded:
+        # Trained model unavailable for any reason — always fall back to
+        # the heuristic as primary, regardless of the configured setting.
+        primary = "old_heuristic"
+
+    top_level_result = heuristic_result if primary == "old_heuristic" else ml_result_to_simulation_result(ml_result)
+
+    old_vs_new = OldVsNewComparison(
+        primary=primary,
+        old_heuristic=heuristic_result,
+        new_model=ml_result,
+    )
+
     return SimulationResponse(
-        result=result,
-        processing_time_ms=0,  # heuristic — near-instant
+        result=top_level_result,
+        processing_time_ms=0,  # heuristic/model — near-instant
         timestamp=datetime.now(timezone.utc),
+        old_vs_new=old_vs_new,
     )

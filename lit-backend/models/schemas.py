@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field
-from typing import Optional, List, Dict, Any
+from typing import Optional, List, Dict, Any, Literal
 from datetime import datetime
 
 
@@ -258,6 +258,15 @@ class SimulationRequest(BaseModel):
         None,
         description="Optional: { 'node_count': int, 'weak_nodes': list[str] } from argument graph",
     )
+    appellant_type: Literal["accused_appeal", "state_appeal", "unclear"] = Field(
+        "unclear",
+        description=(
+            "Who is bringing this appeal — a direct user input (e.g. a toggle), never "
+            "inferred from case text: 'accused_appeal' (the convicted person appealing "
+            "their own conviction) or 'state_appeal' (the State or a complainant "
+            "appealing an acquittal). Defaults to 'unclear' if not provided."
+        ),
+    )
 
 
 class SimulationResult(BaseModel):
@@ -270,10 +279,64 @@ class SimulationResult(BaseModel):
     recommendation: str = Field(..., description="1-2 sentence plain-English recommendation")
 
 
+class MLFeatureContribution(BaseModel):
+    """One feature's signed contribution to the trained model's
+    prediction — unlike ScoreComponent's fixed a-priori weights, this is
+    specific to this one prediction (coefficient x this case's value)."""
+    feature: str = Field(..., description="Feature identifier")
+    display_name: str = Field(..., description="Human-readable feature name")
+    value: float = Field(..., description="Raw feature value fed to the model")
+    contribution: float = Field(
+        ..., description="Signed contribution to the 'succeeds' log-odds (coefficient x value)"
+    )
+    explanation: str = Field(..., description="Plain-language explanation of this feature's effect")
+
+
+class MLModelResult(BaseModel):
+    """Outcome prediction from the trained logistic regression model
+    (outcome_classifier_binary.joblib), returned alongside the
+    hand-picked heuristic for side-by-side comparison."""
+    predicted_class: str = Field(..., description="'dismissed' or 'succeeds' (or 'unknown' if the model failed to load)")
+    probability: float = Field(..., ge=0.0, le=1.0, description="Model's probability for predicted_class")
+    probabilities: Dict[str, float] = Field(..., description="Full class probability distribution")
+    feature_contributions: List[MLFeatureContribution] = Field(
+        default_factory=list, description="All feature contributions, ranked by |contribution| descending"
+    )
+    explanation_sentences: List[str] = Field(
+        default_factory=list, description="Top 2-3 plain-language explanations, most influential first"
+    )
+    key_strengths: List[str] = Field(default_factory=list, description="Top positive-contribution factors")
+    key_weaknesses: List[str] = Field(default_factory=list, description="Top negative-contribution factors")
+    recommendation: str = Field("", description="1-2 sentence plain-English recommendation")
+    model_loaded: bool = Field(..., description="False if the trained model failed to load and this is a fallback stub")
+    model_version: Optional[str] = Field(None, description="Path/identifier of the loaded model artifact")
+
+
+class OldVsNewComparison(BaseModel):
+    """Both prediction approaches side by side, for a live before/after
+    comparison. `primary` reflects which one populates the top-level
+    SimulationResponse.result — controlled by the OUTCOME_MODEL_PRIMARY
+    env var, or forced to 'old_heuristic' if the new model failed to load."""
+    primary: Literal["old_heuristic", "new_model"] = Field(
+        ..., description="Which of the two is currently populating SimulationResponse.result"
+    )
+    old_heuristic: SimulationResult
+    new_model: MLModelResult
+
+
 class SimulationResponse(BaseModel):
     result: SimulationResult
     processing_time_ms: float
     timestamp: datetime
+    old_vs_new: Optional[OldVsNewComparison] = Field(
+        None,
+        description=(
+            "Both the old heuristic and new trained-model predictions side by side. "
+            "Additive field — absent/None only if something unexpected prevented computing it, "
+            "which does not happen in the current implementation but keeps the type honest for "
+            "any older client that doesn't expect this field."
+        ),
+    )
 
 
 # --- Embedding Module (internal use) ---

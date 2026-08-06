@@ -35,6 +35,13 @@ class Settings(BaseSettings):
     # Use fixtures (offline dev mode)
     USE_FIXTURES: bool = False
 
+    # Outcome model — which prediction populates the top-level
+    # SimulationResponse.result: "new_model" (trained binary classifier)
+    # or "old_heuristic" (hand-picked weights). Automatically forced to
+    # "old_heuristic" if the trained model fails to load, regardless of
+    # this setting. Flip via env var for a fast, code-free revert.
+    OUTCOME_MODEL_PRIMARY: str = "new_model"
+
     @property
     def IS_PRODUCTION(self) -> bool:
         """True when running in production environment."""

@@ -11,3 +11,8 @@ pydantic==2.7.3
 pydantic-settings==2.3.4
 loguru==0.7.2
 lxml==5.2.2
+
+# Offline dataset-building / model-training scripts (scripts/outcome_dataset/) —
+# not imported by the live app.
+scikit-learn==1.8.0
+joblib==1.5.3
