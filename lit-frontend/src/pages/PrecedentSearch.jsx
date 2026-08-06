@@ -3,10 +3,12 @@ import { Search as SearchIcon } from 'lucide-react'
 import { useApi } from '../hooks/useApi'
 import { searchPrecedents, getIndexStats } from '../lib/api'
 import Button from '../components/ui/Button'
+import SampleButton from '../components/ui/SampleButton'
 import EmptyState from '../components/ui/EmptyState'
 import ErrorBanner from '../components/ui/ErrorBanner'
 import Spinner from '../components/ui/Spinner'
 import PrecedentCard from '../components/PrecedentCard'
+import { SAMPLE_PRECEDENT_QUERY } from '../data/sampleCases'
 
 /* ------------------------------------------------------------------ */
 /*  Skeleton card — animated pulse placeholder                        */
@@ -61,13 +63,18 @@ export default function PrecedentSearch() {
     <div>
       {/* ---- Header ---- */}
       <div className="mb-8 flex items-start justify-between">
-        <div>
-          <h2 className="text-2xl font-semibold tracking-tight text-gray-900 dark:text-gray-100">
-            Precedent Search
-          </h2>
-          <p className="mt-1.5 text-sm text-gray-500 dark:text-gray-400">
-            Find semantically similar Indian court judgments
-          </p>
+        <div className="flex items-center gap-3">
+          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-navy-500 to-navy-700 shadow-sm">
+            <SearchIcon className="h-5 w-5 text-white" />
+          </span>
+          <div>
+            <h2 className="text-2xl font-semibold tracking-tight text-gray-900 dark:text-gray-100">
+              Precedent Search
+            </h2>
+            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+              Find semantically similar Indian court judgments
+            </p>
+          </div>
         </div>
 
         {/* Index stats — top right */}
@@ -127,8 +134,9 @@ export default function PrecedentSearch() {
             Include live Kanoon results
           </label>
 
-          {/* Search button — pushed right */}
-          <div className="ml-auto">
+          {/* Sample + Search buttons — pushed right */}
+          <div className="ml-auto flex items-center gap-2">
+            <SampleButton onClick={() => setQuery(SAMPLE_PRECEDENT_QUERY)} />
             <Button
               type="submit"
               variant="primary"

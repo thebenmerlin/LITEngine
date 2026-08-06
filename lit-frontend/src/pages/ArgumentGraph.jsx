@@ -12,9 +12,11 @@ import {
 import { useApi } from '../hooks/useApi'
 import { extractFacts, buildGraph, ApiError } from '../lib/api'
 import Button from '../components/ui/Button'
+import SampleButton from '../components/ui/SampleButton'
 import Badge from '../components/ui/Badge'
 import ErrorBanner from '../components/ui/ErrorBanner'
 import Spinner from '../components/ui/Spinner'
+import { SAMPLE_CASE_TEXT } from '../data/sampleCases'
 
 /* ------------------------------------------------------------------ */
 /*  Node type metadata for the legend                                  */
@@ -290,13 +292,18 @@ export default function ArgumentGraph() {
   return (
     <div>
       {/* Header */}
-      <div className="mb-8">
-        <h2 className="text-2xl font-semibold tracking-tight text-gray-900 dark:text-gray-100">
-          Argument Graph
-        </h2>
-        <p className="mt-1.5 text-sm text-gray-500 dark:text-gray-400">
-          Visualize the legal argument structure of your case
-        </p>
+      <div className="mb-8 flex items-center gap-3">
+        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-amber-500 to-amber-700 shadow-sm">
+          <GitBranch className="h-5 w-5 text-white" />
+        </span>
+        <div>
+          <h2 className="text-2xl font-semibold tracking-tight text-gray-900 dark:text-gray-100">
+            Argument Graph
+          </h2>
+          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+            Visualize the legal argument structure of your case
+          </p>
+        </div>
       </div>
 
       {/* Two-panel layout */}
@@ -311,25 +318,28 @@ export default function ArgumentGraph() {
             style={{ minHeight: 200 }}
           />
 
-          {/* Build button */}
-          <Button
-            onClick={handleBuild}
-            variant="primary"
-            className="mt-4 w-full gap-2"
-            disabled={building || !caseText.trim()}
-          >
-            {building ? (
-              <>
-                <Loader2 className="h-4 w-4 animate-spin" />
-                Building…
-              </>
-            ) : (
-              <>
-                <GitBranch className="h-4 w-4" />
-                Build Graph
-              </>
-            )}
-          </Button>
+          {/* Build + Sample buttons */}
+          <div className="mt-4 flex items-center gap-2">
+            <Button
+              onClick={handleBuild}
+              variant="primary"
+              className="flex-1 gap-2"
+              disabled={building || !caseText.trim()}
+            >
+              {building ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Building…
+                </>
+              ) : (
+                <>
+                  <GitBranch className="h-4 w-4" />
+                  Build Graph
+                </>
+              )}
+            </Button>
+            <SampleButton onClick={() => setCaseText(SAMPLE_CASE_TEXT)} />
+          </div>
 
           {/* Error */}
           {buildError && (

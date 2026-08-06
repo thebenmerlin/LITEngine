@@ -10,7 +10,7 @@ export default function Button({
 
   const variants = {
     primary:
-      'bg-navy-700 text-white hover:bg-navy-800 dark:bg-navy-700 dark:hover:bg-navy-600',
+      'bg-gradient-to-b from-navy-600 to-navy-800 text-white shadow-sm shadow-navy-900/20 hover:from-navy-700 hover:to-navy-900 hover:shadow dark:from-navy-600 dark:to-navy-800 dark:hover:from-navy-500 dark:hover:to-navy-700',
     secondary:
       'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700',
     ghost:

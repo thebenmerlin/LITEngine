@@ -2,9 +2,11 @@ import { useState, useCallback } from 'react'
 import { Brain, Download, Printer, Loader2, CheckCircle2, AlertTriangle } from 'lucide-react'
 import { extractFacts, searchPrecedents, runSimulation, ApiError } from '../lib/api'
 import Button from '../components/ui/Button'
+import SampleButton from '../components/ui/SampleButton'
 import Badge from '../components/ui/Badge'
 import ErrorBanner from '../components/ui/ErrorBanner'
 import SimulationGauge from '../components/SimulationGauge'
+import { SAMPLE_CASE_TEXT } from '../data/sampleCases'
 
 /* ------------------------------------------------------------------ */
 /*  Stepped progress indicator                                         */
@@ -230,14 +232,19 @@ export default function Simulation() {
   if (!simResult && !running) {
     return (
       <div>
-        <div className="mb-8">
-          <h2 className="text-2xl font-semibold tracking-tight text-gray-900 dark:text-gray-100">
-            Judicial Simulation
-          </h2>
-          <p className="mt-1.5 text-sm text-gray-500 dark:text-gray-400">
-            Estimate the probable outcome of your case based on precedents
-            and argument strength
-          </p>
+        <div className="mb-8 flex items-center gap-3">
+          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-violet-500 to-violet-700 shadow-sm">
+            <Brain className="h-5 w-5 text-white" />
+          </span>
+          <div>
+            <h2 className="text-2xl font-semibold tracking-tight text-gray-900 dark:text-gray-100">
+              Judicial Simulation
+            </h2>
+            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+              Estimate the probable outcome of your case based on precedents
+              and argument strength
+            </p>
+          </div>
         </div>
 
         <div className="flex flex-col gap-8 lg:flex-row lg:gap-10">
@@ -250,15 +257,18 @@ export default function Simulation() {
               className="block w-full resize-y rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm leading-relaxed text-gray-900 placeholder:text-gray-400 focus:border-navy-700 focus:outline-none focus:ring-1 focus:ring-navy-700 dark:border-gray-700 dark:bg-surface-dark dark:text-gray-100 dark:placeholder:text-gray-500 dark:focus:border-navy-500 dark:focus:ring-navy-500"
               style={{ minHeight: 220 }}
             />
-            <Button
-              onClick={handleRun}
-              variant="primary"
-              className="mt-4 w-full gap-2"
-              disabled={!caseText.trim()}
-            >
-              <Brain className="h-4 w-4" />
-              Run Simulation
-            </Button>
+            <div className="mt-4 flex items-center gap-2">
+              <Button
+                onClick={handleRun}
+                variant="primary"
+                className="flex-1 gap-2"
+                disabled={!caseText.trim()}
+              >
+                <Brain className="h-4 w-4" />
+                Run Simulation
+              </Button>
+              <SampleButton onClick={() => setCaseText(SAMPLE_CASE_TEXT)} />
+            </div>
           </div>
 
           {/* Right panel */}
@@ -274,14 +284,19 @@ export default function Simulation() {
   if (running) {
     return (
       <div>
-        <div className="mb-8">
-          <h2 className="text-2xl font-semibold tracking-tight text-gray-900 dark:text-gray-100">
-            Judicial Simulation
-          </h2>
-          <p className="mt-1.5 text-sm text-gray-500 dark:text-gray-400">
-            Estimate the probable outcome of your case based on precedents
-            and argument strength
-          </p>
+        <div className="mb-8 flex items-center gap-3">
+          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-violet-500 to-violet-700 shadow-sm">
+            <Brain className="h-5 w-5 text-white" />
+          </span>
+          <div>
+            <h2 className="text-2xl font-semibold tracking-tight text-gray-900 dark:text-gray-100">
+              Judicial Simulation
+            </h2>
+            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+              Estimate the probable outcome of your case based on precedents
+              and argument strength
+            </p>
+          </div>
         </div>
 
         <div className="flex flex-col gap-8 lg:flex-row lg:gap-10">
@@ -321,14 +336,19 @@ export default function Simulation() {
   if (error && !simResult) {
     return (
       <div>
-        <div className="mb-8">
-          <h2 className="text-2xl font-semibold tracking-tight text-gray-900 dark:text-gray-100">
-            Judicial Simulation
-          </h2>
-          <p className="mt-1.5 text-sm text-gray-500 dark:text-gray-400">
-            Estimate the probable outcome of your case based on precedents
-            and argument strength
-          </p>
+        <div className="mb-8 flex items-center gap-3">
+          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-violet-500 to-violet-700 shadow-sm">
+            <Brain className="h-5 w-5 text-white" />
+          </span>
+          <div>
+            <h2 className="text-2xl font-semibold tracking-tight text-gray-900 dark:text-gray-100">
+              Judicial Simulation
+            </h2>
+            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+              Estimate the probable outcome of your case based on precedents
+              and argument strength
+            </p>
+          </div>
         </div>
 
         <div className="flex flex-col gap-8 lg:flex-row lg:gap-10">
@@ -340,14 +360,13 @@ export default function Simulation() {
               className="block w-full resize-y rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm leading-relaxed text-gray-900 placeholder:text-gray-400 focus:border-navy-700 focus:outline-none focus:ring-1 focus:ring-navy-700 dark:border-gray-700 dark:bg-surface-dark dark:text-gray-100 dark:placeholder:text-gray-500 dark:focus:border-navy-500 dark:focus:ring-navy-500"
               style={{ minHeight: 220 }}
             />
-            <Button
-              onClick={handleRun}
-              variant="primary"
-              className="mt-4 w-full gap-2"
-            >
-              <Brain className="h-4 w-4" />
-              Retry Simulation
-            </Button>
+            <div className="mt-4 flex items-center gap-2">
+              <Button onClick={handleRun} variant="primary" className="flex-1 gap-2">
+                <Brain className="h-4 w-4" />
+                Retry Simulation
+              </Button>
+              <SampleButton onClick={() => setCaseText(SAMPLE_CASE_TEXT)} />
+            </div>
             <ErrorBanner className="mt-4" message={error} />
           </div>
           <div className="w-full lg:w-[60%]">
@@ -390,14 +409,13 @@ export default function Simulation() {
             className="block w-full resize-y rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm leading-relaxed text-gray-900 placeholder:text-gray-400 focus:border-navy-700 focus:outline-none focus:ring-1 focus:ring-navy-700 dark:border-gray-700 dark:bg-surface-dark dark:text-gray-100 dark:placeholder:text-gray-500 dark:focus:border-navy-500 dark:focus:ring-navy-500"
             style={{ minHeight: 220 }}
           />
-          <Button
-            onClick={handleRun}
-            variant="primary"
-            className="mt-4 w-full gap-2"
-          >
-            <Brain className="h-4 w-4" />
-            Run Simulation
-          </Button>
+          <div className="mt-4 flex items-center gap-2">
+            <Button onClick={handleRun} variant="primary" className="flex-1 gap-2">
+              <Brain className="h-4 w-4" />
+              Run Simulation
+            </Button>
+            <SampleButton onClick={() => setCaseText(SAMPLE_CASE_TEXT)} />
+          </div>
 
           {error && <ErrorBanner className="mt-4" message={error} />}
         </div>

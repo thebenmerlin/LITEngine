@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { ThemeProvider } from './context/ThemeContext'
+import { SidebarProvider } from './context/SidebarContext'
 import { SettingsProvider } from './hooks/useSettings.jsx'
 import Layout from './components/layout/Layout'
 import OfflineBanner from './components/ui/OfflineBanner'
@@ -53,10 +54,12 @@ export default function App() {
 
   return (
     <ThemeProvider>
-      <SettingsProvider>
-        {!ready && <LoadingScreen onDone={() => setReady(true)} />}
-        <AppRoutes />
-      </SettingsProvider>
+      <SidebarProvider>
+        <SettingsProvider>
+          {!ready && <LoadingScreen onDone={() => setReady(true)} />}
+          <AppRoutes />
+        </SettingsProvider>
+      </SidebarProvider>
     </ThemeProvider>
   )
 }

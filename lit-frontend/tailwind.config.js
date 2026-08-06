@@ -25,6 +25,20 @@ export default {
       fontFamily: {
         sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
       },
+      keyframes: {
+        'ping-slow': {
+          '0%': { transform: 'scale(1)', opacity: '0.5' },
+          '75%, 100%': { transform: 'scale(1.9)', opacity: '0' },
+        },
+        'fade-in-up': {
+          '0%': { opacity: '0', transform: 'translateY(6px)' },
+          '100%': { opacity: '1', transform: 'translateY(0)' },
+        },
+      },
+      animation: {
+        'ping-slow': 'ping-slow 2.5s cubic-bezier(0, 0, 0.2, 1) infinite',
+        'fade-in-up': 'fade-in-up 0.2s ease-out',
+      },
     },
   },
   plugins: [],
