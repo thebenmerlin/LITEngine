@@ -1,7 +1,7 @@
-import { useState, useCallback, useMemo } from 'react'
+import { useMemo } from 'react'
 import { FlaskConical, Loader2, CheckCircle2, Beaker } from 'lucide-react'
-import { extractFacts, searchPrecedents, runSimulation, ApiError } from '../lib/api'
-import { recalculate, riskLevel, DEFAULT_TWEAKS } from '../utils/whatIfCalculator'
+import { useWhatIf } from '../hooks/useWhatIf'
+import { recalculate, riskLevel } from '../utils/whatIfCalculator'
 import SimulationGauge from '../components/SimulationGauge'
 import Button from '../components/ui/Button'
 import SampleButton from '../components/ui/SampleButton'
@@ -207,76 +207,21 @@ function WeakArgCheckboxes({ weakNodes, checked, onToggle }) {
 /* ------------------------------------------------------------------ */
 
 export default function WhatIf() {
-  // Base case
-  const [caseText, setCaseText] = useState('')
-  const [baseResult, setBaseResult] = useState(null)
-  const [baseWeakNodes, setBaseWeakNodes] = useState([])
-  const [loading, setLoading] = useState(false)
-  const [progressStep, setProgressStep] = useState(0)
-  const [loadError, setLoadError] = useState(null)
-
-  // Tweaks state
-  const [tweaks, setTweaks] = useState({ ...DEFAULT_TWEAKS })
-
-  // Update a single tweak field
-  const setTweak = useCallback((key, value) => {
-    setTweaks((prev) => ({ ...prev, [key]: value }))
-  }, [])
-
-  // Toggle a weak argument resolution
-  const toggleWeakArg = useCallback((id) => {
-    setTweaks((prev) => ({
-      ...prev,
-      resolvedWeakArgs: prev.resolvedWeakArgs.includes(id)
-        ? prev.resolvedWeakArgs.filter((x) => x !== id)
-        : [...prev.resolvedWeakArgs, id],
-    }))
-  }, [])
-
-  // Load base case (3-step API chain)
-  const handleLoad = useCallback(async () => {
-    if (!caseText.trim()) return
-    setLoading(true)
-    setLoadError(null)
-    setBaseResult(null)
-    setBaseWeakNodes([])
-    setTweaks({ ...DEFAULT_TWEAKS })
-    setProgressStep(0)
-
-    try {
-      // Step 1
-      setProgressStep(0)
-      const profile = await extractFacts({ caseText: caseText.trim(), useModel: true })
-
-      // Step 2
-      setProgressStep(1)
-      const query = profile.legal_issues
-        ? profile.legal_issues.join(' ')
-        : caseText.trim()
-      let precedents = []
-      try {
-        const sr = await searchPrecedents({ query, topK: 5, useKanoon: true })
-        precedents = sr.results || []
-      } catch {
-        precedents = []
-      }
-
-      // Step 3
-      setProgressStep(2)
-      const simRes = await runSimulation({
-        caseProfile: profile,
-        precedents: precedents.slice(0, 5),
-        graphStats: null,
-      })
-
-      setBaseResult(simRes.result)
-      setBaseWeakNodes(simRes.result?.weak_nodes || [])
-    } catch (err) {
-      setLoadError(err instanceof ApiError ? err.detail || err.message : err.message)
-    } finally {
-      setLoading(false)
-    }
-  }, [caseText])
+  const {
+    caseText,
+    setCaseText,
+    baseResult,
+    baseWeakNodes,
+    loading,
+    progressStep,
+    loadError,
+    setLoadError,
+    tweaks,
+    setTweak,
+    toggleWeakArg,
+    resetTweaks,
+    handleLoad,
+  } = useWhatIf()
 
   // Live recalculation — pure JS, instant
   const liveResult = useMemo(() => {
@@ -592,7 +537,7 @@ export default function WhatIf() {
 
               {/* Reset button */}
               <button
-                onClick={() => setTweaks({ ...DEFAULT_TWEAKS })}
+                onClick={resetTweaks}
                 className="w-full rounded-md border border-gray-200 bg-white px-3 py-2 text-sm text-gray-600 transition-colors hover:bg-gray-50 dark:border-gray-800 dark:bg-surface-dark dark:text-gray-400 dark:hover:bg-gray-800"
               >
                 Reset to defaults

@@ -1,6 +1,6 @@
-import { useState, useCallback } from 'react'
+import { useCallback } from 'react'
 import { Brain, Download, Printer, Loader2, CheckCircle2, AlertTriangle } from 'lucide-react'
-import { extractFacts, searchPrecedents, runSimulation, ApiError } from '../lib/api'
+import { useSimulation } from '../hooks/useSimulation'
 import Button from '../components/ui/Button'
 import SampleButton from '../components/ui/SampleButton'
 import Badge from '../components/ui/Badge'
@@ -162,55 +162,8 @@ function SimulationEmpty() {
 /* ------------------------------------------------------------------ */
 
 export default function Simulation() {
-  const [caseText, setCaseText] = useState('')
-  const [simResult, setSimResult] = useState(null)
-  const [error, setError] = useState(null)
-  const [running, setRunning] = useState(false)
-  const [progressStep, setProgressStep] = useState(0)
-
-  const handleRun = useCallback(async () => {
-    if (!caseText.trim()) return
-    setRunning(true)
-    setError(null)
-    setSimResult(null)
-    setProgressStep(0)
-
-    try {
-      // Step 1: Extract facts
-      setProgressStep(0)
-      const profile = await extractFacts({ caseText: caseText.trim(), useModel: true })
-
-      // Step 2: Search precedents
-      setProgressStep(1)
-      const query = profile.legal_issues
-        ? profile.legal_issues.join(' ')
-        : caseText.trim()
-      let precedents = []
-      try {
-        const searchRes = await searchPrecedents({ query, topK: 5, useKanoon: true })
-        precedents = searchRes.results || []
-      } catch {
-        // Non-fatal — simulation can run without precedents
-        precedents = []
-      }
-
-      // Step 3: Run simulation
-      setProgressStep(2)
-      const simRes = await runSimulation({
-        caseProfile: profile,
-        precedents: precedents.slice(0, 5),
-        graphStats: null,
-      })
-
-      setSimResult(simRes.result)
-    } catch (err) {
-      setError(
-        err instanceof ApiError ? err.detail || err.message : err.message,
-      )
-    } finally {
-      setRunning(false)
-    }
-  }, [caseText])
+  const { caseText, setCaseText, simResult, error, running, progressStep, handleRun } =
+    useSimulation()
 
   const handleExportJSON = useCallback(() => {
     if (!simResult) return
@@ -389,14 +342,19 @@ export default function Simulation() {
 
   return (
     <div>
-      <div className="mb-8">
-        <h2 className="text-2xl font-semibold tracking-tight text-gray-900 dark:text-gray-100">
-          Judicial Simulation
-        </h2>
-        <p className="mt-1.5 text-sm text-gray-500 dark:text-gray-400">
-          Estimate the probable outcome of your case based on precedents
-          and argument strength
-        </p>
+      <div className="mb-8 flex items-center gap-3">
+        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-violet-500 to-violet-700 shadow-sm">
+          <Brain className="h-5 w-5 text-white" />
+        </span>
+        <div>
+          <h2 className="text-2xl font-semibold tracking-tight text-gray-900 dark:text-gray-100">
+            Judicial Simulation
+          </h2>
+          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+            Estimate the probable outcome of your case based on precedents
+            and argument strength
+          </p>
+        </div>
       </div>
 
       <div className="flex flex-col gap-8 lg:flex-row lg:gap-10">

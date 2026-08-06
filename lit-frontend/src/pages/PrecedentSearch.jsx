@@ -1,7 +1,5 @@
-import { useState } from 'react'
 import { Search as SearchIcon } from 'lucide-react'
-import { useApi } from '../hooks/useApi'
-import { searchPrecedents, getIndexStats } from '../lib/api'
+import { usePrecedentSearch } from '../hooks/usePrecedentSearch'
 import Button from '../components/ui/Button'
 import SampleButton from '../components/ui/SampleButton'
 import EmptyState from '../components/ui/EmptyState'
@@ -35,27 +33,19 @@ function SkeletonCard() {
 const TOP_K_OPTIONS = [3, 5, 10]
 
 export default function PrecedentSearch() {
-  // Form state
-  const [query, setQuery] = useState('')
-  const [topK, setTopK] = useState(5)
-  const [useKanoon, setUseKanoon] = useState(true)
-
-  // Index stats (fetched once on mount)
-  const { data: statsData } = useApi(getIndexStats, { immediate: true })
-
-  // Search
   const {
-    data: results,
-    loading: searching,
-    error: searchError,
-    execute: handleSearch,
-  } = useApi(searchPrecedents)
-
-  const onSubmit = (e) => {
-    e.preventDefault()
-    if (!query.trim()) return
-    handleSearch({ query: query.trim(), topK, useKanoon })
-  }
+    query,
+    setQuery,
+    topK,
+    setTopK,
+    useKanoon,
+    setUseKanoon,
+    statsData,
+    results,
+    searching,
+    searchError,
+    handleSearch,
+  } = usePrecedentSearch()
 
   const hasSearched = results !== null || searchError !== null
 
@@ -95,7 +85,7 @@ export default function PrecedentSearch() {
       </div>
 
       {/* ---- Search Form ---- */}
-      <form onSubmit={onSubmit}>
+      <form onSubmit={handleSearch}>
         <textarea
           value={query}
           onChange={(e) => setQuery(e.target.value)}

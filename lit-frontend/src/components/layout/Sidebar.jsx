@@ -8,8 +8,8 @@ import {
   Brain,
   Settings,
   FlaskConical,
-  ChevronsLeft,
-  ChevronsRight,
+  PanelLeftClose,
+  PanelLeftOpen,
 } from 'lucide-react'
 import { useSidebar } from '../../hooks/useSidebar'
 
@@ -27,7 +27,7 @@ const NAV_ITEMS = [
 /*  Logo — animated wordmark, always links home                       */
 /* ------------------------------------------------------------------ */
 
-function Logo({ expanded }) {
+function Logo() {
   return (
     <Link
       to="/"
@@ -41,51 +41,49 @@ function Logo({ expanded }) {
           <Scale className="h-[18px] w-[18px] text-white" strokeWidth={2.25} />
         </span>
       </span>
-      {expanded && (
-        <span className="flex flex-col leading-none">
-          <span className="text-[15px] font-semibold tracking-tight text-navy-700 dark:text-gray-100">
-            LIT
-          </span>
-          <span className="mt-0.5 text-[10px] font-medium uppercase tracking-wider text-gray-400 dark:text-gray-500">
-            Legal Intelligence
-          </span>
+      <span className="flex flex-col leading-none">
+        <span className="text-[15px] font-semibold tracking-tight text-navy-700 dark:text-gray-100">
+          LIT
         </span>
-      )}
+        <span className="mt-0.5 text-[10px] font-medium uppercase tracking-wider text-gray-400 dark:text-gray-500">
+          Legal Intelligence
+        </span>
+      </span>
     </Link>
   )
 }
 
-export default function Sidebar() {
-  const { collapsed, toggle } = useSidebar()
-  const [hovered, setHovered] = useState(false)
+/* ------------------------------------------------------------------ */
+/*  Full nav panel — shared by the pinned-open and peek states         */
+/* ------------------------------------------------------------------ */
 
-  // Visually expanded either because it's pinned open, or because the user
-  // is hovering a collapsed rail (Notion-style peek). Peek never changes
-  // the persisted `collapsed` value that Layout uses for content margin.
-  const peeking = collapsed && hovered
-  const expanded = !collapsed || peeking
-
+function SidebarPanel({ collapsed, onToggle }) {
   return (
-    <aside
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-      className={`fixed inset-y-0 left-0 z-40 flex flex-col border-r border-gray-200 bg-[#F9FAFB] transition-[width] duration-200 ease-out dark:border-gray-800 dark:bg-[#161B27] ${
-        expanded ? 'w-60' : 'w-16'
-      } ${peeking ? 'shadow-xl' : ''}`}
-    >
-      {/* Wordmark */}
+    <>
+      {/* Header — logo + pin/collapse toggle live together at the TOP */}
       <div className="flex h-16 shrink-0 items-center justify-between border-b border-gray-200 px-4 dark:border-gray-800">
-        <Logo expanded={expanded} />
+        <Logo />
+        <button
+          onClick={onToggle}
+          className="rounded-md p-1.5 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600 dark:text-gray-500 dark:hover:bg-gray-800 dark:hover:text-gray-300"
+          aria-label={collapsed ? 'Pin sidebar open' : 'Collapse sidebar'}
+          title={collapsed ? 'Pin sidebar open' : 'Collapse sidebar'}
+        >
+          {collapsed ? (
+            <PanelLeftOpen className="h-[18px] w-[18px]" />
+          ) : (
+            <PanelLeftClose className="h-[18px] w-[18px]" />
+          )}
+        </button>
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 space-y-0.5 overflow-hidden px-3 py-4">
+      <nav className="flex-1 space-y-0.5 overflow-y-auto px-3 py-4">
         {NAV_ITEMS.map(({ to, label, icon: Icon }) => (
           <NavLink
             key={to}
             to={to}
             end={to === '/'}
-            title={expanded ? undefined : label}
             className={({ isActive }) =>
               `flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors duration-150 ${
                 isActive
@@ -95,31 +93,52 @@ export default function Sidebar() {
             }
           >
             <Icon className="h-[18px] w-[18px] shrink-0" />
-            {expanded && <span className="whitespace-nowrap">{label}</span>}
+            <span className="whitespace-nowrap">{label}</span>
           </NavLink>
         ))}
       </nav>
 
-      {/* Footer — collapse toggle */}
-      <div className="border-t border-gray-200 px-3 py-3 dark:border-gray-800">
-        <button
-          onClick={toggle}
-          className="flex w-full items-center gap-3 rounded-md px-3 py-2 text-xs font-medium text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600 dark:text-gray-500 dark:hover:bg-gray-800 dark:hover:text-gray-300"
-          aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-        >
-          {collapsed ? (
-            <ChevronsRight className="h-4 w-4 shrink-0" />
-          ) : (
-            <ChevronsLeft className="h-4 w-4 shrink-0" />
-          )}
-          {expanded && <span className="whitespace-nowrap">Collapse</span>}
-        </button>
-        {expanded && (
-          <p className="mt-2 px-3 text-[11px] text-gray-400 dark:text-gray-600">
-            v0.1.0 &middot; Indian Legal AI
-          </p>
-        )}
+      <div className="border-t border-gray-200 px-6 py-3 dark:border-gray-800">
+        <p className="text-[11px] text-gray-400 dark:text-gray-600">
+          v0.1.0 &middot; Indian Legal AI
+        </p>
       </div>
-    </aside>
+    </>
+  )
+}
+
+export default function Sidebar() {
+  const { collapsed, toggle } = useSidebar()
+  const [peeking, setPeeking] = useState(false)
+
+  /* ---- Pinned open — normal, in-flow sidebar ---------------------- */
+  if (!collapsed) {
+    return (
+      <aside className="fixed inset-y-0 left-0 z-30 flex w-60 flex-col border-r border-gray-200 bg-[#F9FAFB] dark:border-gray-800 dark:bg-[#161B27]">
+        <SidebarPanel collapsed={false} onToggle={toggle} />
+      </aside>
+    )
+  }
+
+  /* ---- Collapsed — sidebar is gone; a thin edge zone reveals a      */
+  /* Notion-style peek overlay on hover, without touching page layout. */
+  return (
+    <div
+      onMouseEnter={() => setPeeking(true)}
+      onMouseLeave={() => setPeeking(false)}
+      className="fixed inset-y-0 left-0 z-40"
+    >
+      {/* Slim always-present edge strip — hover target + visual hint */}
+      <div className="group flex h-full w-3 items-center justify-center border-r border-transparent bg-transparent">
+        <span className="h-10 w-[3px] rounded-full bg-gray-300/70 transition-colors group-hover:bg-navy-700/50 dark:bg-gray-700/70 dark:group-hover:bg-navy-400/50" />
+      </div>
+
+      {/* Peek overlay — full sidebar, floats above content, doesn't reflow it */}
+      {peeking && (
+        <aside className="absolute inset-y-0 left-0 flex w-60 animate-fade-in-up flex-col border-r border-gray-200 bg-[#F9FAFB] shadow-2xl dark:border-gray-800 dark:bg-[#161B27]">
+          <SidebarPanel collapsed onToggle={toggle} />
+        </aside>
+      )}
+    </div>
   )
 }

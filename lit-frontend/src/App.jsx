@@ -3,6 +3,11 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { ThemeProvider } from './context/ThemeContext'
 import { SidebarProvider } from './context/SidebarContext'
 import { SettingsProvider } from './hooks/useSettings.jsx'
+import { PrecedentSearchProvider } from './context/PrecedentSearchContext'
+import { FactExtractionProvider } from './context/FactExtractionContext'
+import { ArgumentGraphProvider } from './context/ArgumentGraphContext'
+import { SimulationProvider } from './context/SimulationContext'
+import { WhatIfProvider } from './context/WhatIfContext'
 import Layout from './components/layout/Layout'
 import OfflineBanner from './components/ui/OfflineBanner'
 import LoadingScreen from './components/ui/LoadingScreen'
@@ -56,8 +61,18 @@ export default function App() {
     <ThemeProvider>
       <SidebarProvider>
         <SettingsProvider>
-          {!ready && <LoadingScreen onDone={() => setReady(true)} />}
-          <AppRoutes />
+          <PrecedentSearchProvider>
+            <FactExtractionProvider>
+              <ArgumentGraphProvider>
+                <SimulationProvider>
+                  <WhatIfProvider>
+                    {!ready && <LoadingScreen onDone={() => setReady(true)} />}
+                    <AppRoutes />
+                  </WhatIfProvider>
+                </SimulationProvider>
+              </ArgumentGraphProvider>
+            </FactExtractionProvider>
+          </PrecedentSearchProvider>
         </SettingsProvider>
       </SidebarProvider>
     </ThemeProvider>

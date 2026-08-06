@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Sun, Moon, Settings, Info, ChevronDown } from 'lucide-react'
+import { Sun, Moon, Settings, Info, ChevronDown, PanelLeftOpen } from 'lucide-react'
 import { useTheme } from '../../hooks/useTheme'
+import { useSidebar } from '../../hooks/useSidebar'
 
 /* ------------------------------------------------------------------ */
 /*  Clickable profile avatar with a small dropdown menu               */
@@ -82,12 +83,25 @@ function ProfileMenu() {
 
 export default function Topbar({ title }) {
   const { dark, toggle } = useTheme()
+  const { collapsed, toggle: toggleSidebar } = useSidebar()
 
   return (
-    <header className="flex h-[60px] items-center justify-between border-b border-gray-200 bg-white px-8 transition-colors duration-200 dark:border-gray-800 dark:bg-surface-dark">
-      <h1 className="text-base font-semibold text-gray-900 dark:text-gray-100">
-        {title}
-      </h1>
+    <header className="flex h-[60px] items-center justify-between border-b border-gray-200 bg-white pl-6 pr-8 transition-colors duration-200 dark:border-gray-800 dark:bg-surface-dark">
+      <div className="flex items-center gap-3">
+        {collapsed && (
+          <button
+            onClick={toggleSidebar}
+            className="rounded-md p-1.5 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600 dark:text-gray-500 dark:hover:bg-gray-800 dark:hover:text-gray-300"
+            aria-label="Open sidebar"
+            title="Open sidebar"
+          >
+            <PanelLeftOpen className="h-[18px] w-[18px]" />
+          </button>
+        )}
+        <h1 className="text-base font-semibold text-gray-900 dark:text-gray-100">
+          {title}
+        </h1>
+      </div>
 
       <div className="flex items-center gap-4">
         {/* Dark mode toggle */}

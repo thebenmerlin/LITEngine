@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from 'react'
+import { useCallback, useRef } from 'react'
 import CytoscapeComponent from 'react-cytoscapejs'
 import {
   GitBranch,
@@ -9,73 +9,168 @@ import {
   X,
   Loader2,
 } from 'lucide-react'
-import { useApi } from '../hooks/useApi'
-import { extractFacts, buildGraph, ApiError } from '../lib/api'
+import { useArgumentGraph } from '../hooks/useArgumentGraph'
+import { useTheme } from '../hooks/useTheme'
 import Button from '../components/ui/Button'
 import SampleButton from '../components/ui/SampleButton'
 import Badge from '../components/ui/Badge'
 import ErrorBanner from '../components/ui/ErrorBanner'
-import Spinner from '../components/ui/Spinner'
 import { SAMPLE_CASE_TEXT } from '../data/sampleCases'
 
 /* ------------------------------------------------------------------ */
-/*  Node type metadata for the legend                                  */
+/*  Node/edge color palette — theme-aware. The light-mode values are   */
+/*  dark, saturated colors (good contrast on a white card); dark mode  */
+/*  needs brighter variants of the same hues or nodes/edges blend into */
+/*  the dark canvas and become unreadable.                             */
 /* ------------------------------------------------------------------ */
+
+const TYPE_COLORS = {
+  CLAIM: { light: '#1B2A4A', dark: '#93A9DD' },
+  EVIDENCE: { light: '#374151', dark: '#B4BCC7' },
+  STATUTE: { light: '#065F46', dark: '#34D399' },
+  PRECEDENT: { light: '#92400E', dark: '#FBBF24' },
+  ISSUE: { light: '#1E3A5F', dark: '#7FB2EC' },
+}
+
+const EDGE_COLORS = {
+  supports: { light: '#9CA3AF', dark: '#9CA3AF' },
+  contradicts: { light: '#DC2626', dark: '#F87171' },
+  cites: { light: '#D97706', dark: '#FBBF24' },
+  raises: { light: '#1B2A4A', dark: '#93A9DD' },
+}
 
 const NODE_LEGEND = [
-  { type: 'CLAIM', label: 'Claim', color: '#1B2A4A' },
-  { type: 'EVIDENCE', label: 'Evidence', color: '#374151' },
-  { type: 'STATUTE', label: 'Statute', color: '#065F46' },
-  { type: 'PRECEDENT', label: 'Precedent', color: '#92400E' },
-  { type: 'ISSUE', label: 'Issue', color: '#1E3A5F' },
+  { type: 'CLAIM', label: 'Claim' },
+  { type: 'EVIDENCE', label: 'Evidence' },
+  { type: 'STATUTE', label: 'Statute' },
+  { type: 'PRECEDENT', label: 'Precedent' },
+  { type: 'ISSUE', label: 'Issue' },
 ]
-
-/* ------------------------------------------------------------------ */
-/*  Edge style map                                                     */
-/* ------------------------------------------------------------------ */
-
-const EDGE_STYLE = {
-  supports: { color: '#9CA3AF', 'line-style': 'solid', 'target-arrow-color': '#9CA3AF' },
-  contradicts: { color: '#DC2626', 'line-style': 'dashed', 'target-arrow-color': '#DC2626' },
-  cites: { color: '#D97706', 'line-style': 'solid', 'target-arrow-color': '#D97706' },
-  raises: { color: '#1B2A4A', 'line-style': 'solid', 'target-arrow-color': '#1B2A4A' },
-}
 
 /* ------------------------------------------------------------------ */
 /*  Convert backend response → cytoscape elements                      */
 /* ------------------------------------------------------------------ */
 
-function toElements(graphData, weakNodes) {
+function toElements(graphData, weakNodes, dark) {
   const weakSet = new Set(weakNodes || [])
+  const mode = dark ? 'dark' : 'light'
 
   const nodes = (graphData.nodes || []).map((n) => ({
     data: {
       id: n.id,
       label: n.label,
       type: n.type,
-      color: n.color,
-      shape: n.shape,
+      color: (TYPE_COLORS[n.type] || TYPE_COLORS.EVIDENCE)[mode],
       weight: n.weight ?? 0.5,
       description: n.description ?? '',
       weak: weakSet.has(n.id),
     },
   }))
 
-  const edges = (graphData.edges || []).map((e, i) => {
-    const style = EDGE_STYLE[e.type] || EDGE_STYLE.supports
-    return {
-      data: {
-        id: `e${i}`,
-        source: e.source,
-        target: e.target,
-        label: e.label,
-        type: e.type,
-        ...style,
-      },
-    }
-  })
+  const edges = (graphData.edges || []).map((e, i) => ({
+    data: {
+      id: `e${i}`,
+      source: e.source,
+      target: e.target,
+      label: e.label,
+      type: e.type,
+      color: (EDGE_COLORS[e.type] || EDGE_COLORS.supports)[mode],
+      lineStyle: e.type === 'contradicts' ? 'dashed' : 'solid',
+    },
+  }))
 
   return [...nodes, ...edges]
+}
+
+/* ------------------------------------------------------------------ */
+/*  Cytoscape stylesheet — theme-aware (node labels, edge labels, and  */
+/*  edge label backgrounds all need to flip for dark mode legibility)  */
+/* ------------------------------------------------------------------ */
+
+function buildStylesheet(dark) {
+  const textColor = dark ? '#E5E7EB' : '#111827'
+  const textOutline = dark ? '#0F1117' : '#FFFFFF'
+  const edgeLabelBg = dark ? '#1F2937' : '#FFFFFF'
+
+  return [
+    {
+      selector: 'node',
+      style: {
+        'background-color': (el) => el.data('color') || '#666',
+        label: (el) => {
+          const t = el.data('label') || ''
+          return t.length > 25 ? t.slice(0, 24) + '…' : t
+        },
+        color: textColor,
+        'text-outline-width': 2,
+        'text-outline-color': textOutline,
+        'text-outline-opacity': 1,
+        'text-valign': 'bottom',
+        'text-halign': 'center',
+        'text-margin-y': 12,
+        'font-size': 11,
+        'font-family': 'Inter, system-ui, sans-serif',
+        'text-wrap': 'wrap',
+        'text-max-width': 90,
+        width: 60,
+        height: 60,
+        'border-width': 0,
+      },
+    },
+    // Weak nodes — red border, slightly larger (visible in both themes)
+    {
+      selector: 'node[weak = true]',
+      style: {
+        'border-width': 3,
+        'border-color': '#EF4444',
+        width: 68,
+        height: 68,
+      },
+    },
+    // Shape overrides
+    {
+      selector: 'node[type = "CLAIM"]',
+      style: { shape: 'rectangle', width: 70, height: 50 },
+    },
+    {
+      selector: 'node[type = "EVIDENCE"]',
+      style: { shape: 'ellipse', width: 55, height: 55 },
+    },
+    {
+      selector: 'node[type = "STATUTE"]',
+      style: { shape: 'diamond', width: 55, height: 55 },
+    },
+    {
+      selector: 'node[type = "PRECEDENT"]',
+      style: { shape: 'hexagon', width: 55, height: 55 },
+    },
+    {
+      selector: 'node[type = "ISSUE"]',
+      style: { shape: 'round-rectangle', width: 65, height: 50 },
+    },
+    // Edge — color/line-style driven entirely by per-element data, set
+    // theme-aware in toElements() above.
+    {
+      selector: 'edge',
+      style: {
+        'curve-style': 'bezier',
+        'target-arrow-shape': 'triangle',
+        'target-arrow-size': 10,
+        width: 1.5,
+        'font-size': 9,
+        'text-margin-y': -8,
+        label: (el) => el.data('label') || '',
+        color: textColor,
+        'text-opacity': 0.9,
+        'text-background-color': edgeLabelBg,
+        'text-background-opacity': 0.9,
+        'text-background-padding': 2,
+        'line-color': (el) => el.data('color') || '#9CA3AF',
+        'target-arrow-color': (el) => el.data('color') || '#9CA3AF',
+        'line-style': (el) => el.data('lineStyle') || 'solid',
+      },
+    },
+  ]
 }
 
 /* ------------------------------------------------------------------ */
@@ -134,37 +229,20 @@ function WeightBar({ value }) {
 /* ------------------------------------------------------------------ */
 
 export default function ArgumentGraph() {
-  const [caseText, setCaseText] = useState('')
-  const [graphData, setGraphData] = useState(null)
-  const [selectedNode, setSelectedNode] = useState(null)
+  const {
+    caseText,
+    setCaseText,
+    graphData,
+    selectedNode,
+    setSelectedNode,
+    building,
+    buildError,
+    setBuildError,
+    handleBuild,
+  } = useArgumentGraph()
+  const { dark } = useTheme()
 
   const cyRef = useRef(null)
-
-  // Graph build (manual — not using useApi since we chain two calls)
-  const [building, setBuilding] = useState(false)
-  const [buildError, setBuildError] = useState(null)
-
-  const handleBuild = useCallback(async () => {
-    if (!caseText.trim()) return
-    setBuilding(true)
-    setBuildError(null)
-    setSelectedNode(null)
-    setGraphData(null)
-
-    try {
-      // Step 1: extract facts
-      const profile = await extractFacts({ caseText: caseText.trim(), useModel: true })
-      // Step 2: build graph
-      const graph = await buildGraph({ caseProfile: profile, precedents: [] })
-      setGraphData(graph)
-    } catch (err) {
-      setBuildError(
-        err instanceof ApiError ? err.detail || err.message : err.message,
-      )
-    } finally {
-      setBuilding(false)
-    }
-  }, [caseText])
 
   // Cytoscape node click handler
   const onNodeClick = useCallback((event) => {
@@ -177,7 +255,7 @@ export default function ArgumentGraph() {
       weight: data('weight'),
       color: data('color'),
     })
-  }, [])
+  }, [setSelectedNode])
 
   // Graph controls
   const fitGraph = useCallback(() => {
@@ -193,98 +271,8 @@ export default function ArgumentGraph() {
   }, [])
 
   const weakNodeIds = new Set(graphData?.weak_nodes ?? [])
-
-  // Cytoscape stylesheet — shape mapping
-  const stylesheet = [
-    // Default node style
-    {
-      selector: 'node',
-      style: {
-        'background-color': (el) => el.data('color') || '#666',
-        label: (el) => {
-          const t = el.data('label') || ''
-          return t.length > 25 ? t.slice(0, 24) + '…' : t
-        },
-        'text-valign': 'bottom',
-        'text-halign': 'center',
-        'text-margin-y': 12,
-        'font-size': 11,
-        'font-family': 'Inter, system-ui, sans-serif',
-        'text-wrap': 'wrap',
-        'text-max-width': 90,
-        width: 60,
-        height: 60,
-        'border-width': 0,
-      },
-    },
-    // Weak nodes — red border, slightly larger
-    {
-      selector: 'node[weak = true]',
-      style: {
-        'border-width': 3,
-        'border-color': '#DC2626',
-        width: 68,
-        height: 68,
-      },
-    },
-    // Shape overrides
-    {
-      selector: 'node[type = "CLAIM"]',
-      style: { shape: 'rectangle', width: 70, height: 50 },
-    },
-    {
-      selector: 'node[type = "EVIDENCE"]',
-      style: { shape: 'ellipse', width: 55, height: 55 },
-    },
-    {
-      selector: 'node[type = "STATUTE"]',
-      style: { shape: 'diamond', width: 55, height: 55 },
-    },
-    {
-      selector: 'node[type = "PRECEDENT"]',
-      style: { shape: 'hexagon', width: 55, height: 55 },
-    },
-    {
-      selector: 'node[type = "ISSUE"]',
-      style: { shape: 'round-rectangle', width: 65, height: 50 },
-    },
-    // Default edge
-    {
-      selector: 'edge',
-      style: {
-        'curve-style': 'bezier',
-        'target-arrow-shape': 'triangle',
-        'target-arrow-size': 10,
-        width: 1.5,
-        'font-size': 9,
-        'text-margin-y': -8,
-        label: (el) => el.data('label') || '',
-        'text-opacity': 0.6,
-        'text-background-color': '#ffffff',
-        'text-background-opacity': 0.8,
-        'text-background-padding': 2,
-      },
-    },
-    // Edge color/type overrides via data attributes set in toElements
-    {
-      selector: 'edge[type = "supports"]',
-      style: { 'line-color': '#9CA3AF', 'target-arrow-color': '#9CA3AF' },
-    },
-    {
-      selector: 'edge[type = "contradicts"]',
-      style: { 'line-color': '#DC2626', 'target-arrow-color': '#DC2626', 'line-style': 'dashed' },
-    },
-    {
-      selector: 'edge[type = "cites"]',
-      style: { 'line-color': '#D97706', 'target-arrow-color': '#D97706' },
-    },
-    {
-      selector: 'edge[type = "raises"]',
-      style: { 'line-color': '#1B2A4A', 'target-arrow-color': '#1B2A4A' },
-    },
-  ]
-
-  const elements = graphData ? toElements(graphData, graphData.weak_nodes) : []
+  const stylesheet = buildStylesheet(dark)
+  const elements = graphData ? toElements(graphData, graphData.weak_nodes, dark) : []
   const weakList = graphData
     ? (graphData.nodes ?? []).filter((n) => weakNodeIds.has(n.id))
     : []
@@ -370,11 +358,11 @@ export default function ArgumentGraph() {
               Legend
             </h3>
             <div className="space-y-2">
-              {NODE_LEGEND.map(({ type, label, color }) => (
+              {NODE_LEGEND.map(({ type, label }) => (
                 <div key={type} className="flex items-center gap-2.5 text-sm text-gray-600 dark:text-gray-400">
                   <span
                     className="h-3 w-3 shrink-0 rounded-sm"
-                    style={{ backgroundColor: color }}
+                    style={{ backgroundColor: TYPE_COLORS[type][dark ? 'dark' : 'light'] }}
                   />
                   {label}
                 </div>
@@ -436,6 +424,7 @@ export default function ArgumentGraph() {
               {/* Cytoscape container */}
               <div className="overflow-hidden rounded-lg border border-gray-200 bg-white transition-colors duration-200 dark:border-gray-800 dark:bg-surface-dark">
                 <CytoscapeComponent
+                  key={dark ? 'dark' : 'light'}
                   elements={elements}
                   stylesheet={stylesheet}
                   cy={(cy) => { cyRef.current = cy }}

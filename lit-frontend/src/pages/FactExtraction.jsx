@@ -1,4 +1,3 @@
-import { useState, useRef, useEffect } from 'react'
 import {
   Download,
   Loader2,
@@ -10,8 +9,8 @@ import {
   FileText,
   ArrowUpRight,
 } from 'lucide-react'
-import { useApi } from '../hooks/useApi'
-import { extractFacts, ApiError } from '../lib/api'
+import { ApiError } from '../lib/api'
+import { useFactExtraction } from '../hooks/useFactExtraction'
 import Button from '../components/ui/Button'
 import SampleButton from '../components/ui/SampleButton'
 import Badge from '../components/ui/Badge'
@@ -257,37 +256,17 @@ function OutputPanel({ profile, onExport }) {
 /* ------------------------------------------------------------------ */
 
 export default function FactExtraction() {
-  const [caseText, setCaseText] = useState('')
-  const [useModel, setUseModel] = useState(true)
-
   const {
-    data: profile,
+    caseText,
+    setCaseText,
+    useModel,
+    setUseModel,
+    profile,
     loading,
     error,
-    execute,
-  } = useApi(extractFacts)
-
-  // ---- warming-up timer ---------------------------------------
-  // useApi handles the 202 polling internally. We show an elapsed
-  // seconds counter while loading is true — if the model was cold
-  // the user sees the warming state; if it was warm it flashes away.
-  const [elapsed, setElapsed] = useState(0)
-  const timerRef = useRef(null)
-
-  useEffect(() => {
-    if (loading) {
-      setElapsed(0)
-      timerRef.current = setInterval(() => setElapsed((s) => s + 1), 1000)
-    } else {
-      clearInterval(timerRef.current)
-    }
-    return () => clearInterval(timerRef.current)
-  }, [loading])
-
-  const handleExtract = () => {
-    if (!caseText.trim()) return
-    execute({ caseText: caseText.trim(), useModel })
-  }
+    elapsed,
+    handleExtract,
+  } = useFactExtraction()
 
   const handleExport = () => {
     if (!profile) return

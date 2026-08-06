@@ -24,7 +24,7 @@ export default function Layout() {
 
       <div
         className={`flex min-h-screen flex-col transition-[margin] duration-200 ease-out ${
-          collapsed ? 'ml-16' : 'ml-60'
+          collapsed ? 'ml-0' : 'ml-60'
         }`}
       >
         <Topbar title={title} />
