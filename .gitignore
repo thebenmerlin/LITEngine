@@ -5,6 +5,12 @@
 /lit-backend/logs/
 /lit-backend/venv/
 /lit-backend/.pytest_cache/
+/lit-backend/data/*
+!/lit-backend/data/outcome_dataset/
+/lit-backend/data/outcome_dataset/*
+!/lit-backend/data/outcome_dataset/model/
+/lit-backend/data/outcome_dataset/model/*
+!/lit-backend/data/outcome_dataset/model/outcome_classifier_binary.joblib
 
 /lit-frontend/node_modules/
 /lit-frontend/dist/
