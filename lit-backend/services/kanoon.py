@@ -33,7 +33,11 @@ BROWSER_HEADERS = {
     ),
     "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
     "Accept-Language": "en-US,en;q=0.9,hi;q=0.8",
-    "Accept-Encoding": "gzip, deflate, br",
+    # NOTE: intentionally omits "br" (Brotli) — httpx can only decode it if
+    # the optional `brotli`/`brotlicffi` package is installed, which isn't
+    # a project dependency. Without it, a Brotli-encoded response silently
+    # decodes to garbage. gzip/deflate are supported natively by httpx.
+    "Accept-Encoding": "gzip, deflate",
     "Connection": "keep-alive",
     "Upgrade-Insecure-Requests": "1",
     "Sec-Fetch-Dest": "document",
@@ -98,37 +102,45 @@ CACHE_TTL_SECONDS = 3600  # 1 hour
 
 
 def _extract_doc_id(url: str) -> Optional[str]:
-    """Pull the numeric doc id out of an indiankanoon URL."""
-    match = re.search(r"/doc/(\d+)/?", url)
+    """Pull the numeric doc id out of an indiankanoon URL.
+
+    Handles both the canonical /doc/{id}/ path and the /docfragment/{id}/
+    path used for search-result links.
+    """
+    match = re.search(r"/(?:doc|docfragment)/(\d+)/?", url)
     return match.group(1) if match else None
 
 
 def _normalize_date(raw: str) -> Optional[str]:
     """Try to return a YYYY-MM-DD string from a loose date string."""
     raw = raw.strip()
+    # Kanoon commonly writes "DD Month, YYYY" — strip the comma for matching
+    cleaned = raw.replace(",", "")
     # DD-MM-YYYY or DD/MM/YYYY
-    m = re.match(r"(\d{1,2})[/-](\d{1,2})[/-](\d{4})", raw)
+    m = re.match(r"(\d{1,2})[/-](\d{1,2})[/-](\d{4})", cleaned)
     if m:
         d, mo, y = m.groups()
         try:
             return datetime(int(y), int(mo), int(d)).strftime("%Y-%m-%d")
         except ValueError:
             return raw
-    # DD Month YYYY
+    # DD Month YYYY (month may be abbreviated or full)
     m = re.match(
         r"(\d{1,2})\s+"
         r"(Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|"
         r"Jul(?:y)?|Aug(?:ust)?|Sep(?:tember)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)\s+"
         r"(\d{4})",
-        raw,
+        cleaned,
         re.IGNORECASE,
     )
     if m:
-        try:
-            dt = datetime.strptime(raw.strip(), "%d %B %Y")
-            return dt.strftime("%Y-%m-%d")
-        except ValueError:
-            return raw
+        date_str = f"{m.group(1)} {m.group(2)} {m.group(3)}"
+        for fmt in ("%d %B %Y", "%d %b %Y"):
+            try:
+                return datetime.strptime(date_str, fmt).strftime("%Y-%m-%d")
+            except ValueError:
+                continue
+        return raw
     return raw or None
 
 
@@ -164,7 +176,6 @@ class KanoonService:
                 headers=BROWSER_HEADERS,
                 timeout=30.0,
                 follow_redirects=True,
-                http2=True,
             )
             logger.info("Created async httpx client with browser headers")
         return self._client
@@ -228,26 +239,26 @@ class KanoonService:
         soup = BeautifulSoup(html, "html.parser")
         results: List[SearchResult] = []
 
-        # Indian Kanoon search results are typically inside <div class="result">
-        # or inside specific container divs. We try multiple selectors.
+        # Indian Kanoon search results markup has changed over time.
+        # "article.result" is the current (2026) structure; the others are
+        # kept as fallbacks for older cached HTML / structure reversions.
         containers = (
-            soup.select("div.result")
+            soup.select("article.result")
+            or soup.select("div.result")
             or soup.select("div.search-result")
             or soup.select("div.doc")
             or soup.select("div[itemprop='result']")
         )
 
         if not containers:
-            # Fallback: look for <p> tags containing <a> links to /doc/
+            # Fallback: look for <p> tags containing <a> links to /doc/ or /docfragment/
             for para in soup.select("p"):
-                link = para.find("a", href=re.compile(r"/doc/\d+/"))
+                link = para.find("a", href=re.compile(r"/(?:doc|docfragment)/\d+"))
                 if link:
                     title = _clean_text(link) or _clean_text(para)
-                    url = link.get("href", "")
-                    if url and not url.startswith("http"):
-                        url = "https://indiankanoon.org" + url
+                    doc_id = _extract_doc_id(link.get("href", ""))
+                    url = KANOON_DOC_URL.format(doc_id=doc_id) if doc_id else link.get("href", "")
                     snippet = _clean_text(para).replace(title, "").strip()
-                    doc_id = _extract_doc_id(url)
                     if doc_id:
                         results.append(
                             SearchResult(
@@ -262,36 +273,58 @@ class KanoonService:
             return results[:limit]
 
         for container in containers:
-            # Title / link
-            link = container.find("a", href=re.compile(r"/doc/\d+/"))
+            # Title / link — search results link via either /doc/{id}/ or
+            # /docfragment/{id}/ (the latter for highlighted-snippet links)
+            link = container.find("a", href=re.compile(r"/(?:doc|docfragment)/\d+"))
             title = _clean_text(link) if link else _clean_text(container)
             href = link.get("href", "") if link else ""
             if href and not href.startswith("http"):
                 href = "https://indiankanoon.org" + href
 
             doc_id = _extract_doc_id(href)
+            # Canonicalize to the standard /doc/{id}/ URL regardless of
+            # which link style the search result used
+            canonical_url = KANOON_DOC_URL.format(doc_id=doc_id) if doc_id else href
 
-            # Court
+            # Court / source
             court = None
             court_el = container.find(
-                True, class_=re.compile(r"court|bench", re.I)
+                True, class_=re.compile(r"docsource|court|bench", re.I)
             ) or container.find(
                 True, string=re.compile(r"(Supreme Court|High Court)", re.I)
             )
             if court_el:
                 court = _clean_text(court_el)
 
-            # Date
+            # Skip non-judgment hits — Kanoon search mixes in bare statute /
+            # section reference pages (e.g. "Section 374 in The Code of
+            # Criminal Procedure, 1973") whose source is the enacting body,
+            # not a court.
+            looks_like_bare_statute = bool(
+                re.match(r"^\s*(?:Section|Article|Order|Rule)\s+\d", title or "")
+            )
+            looks_like_court = bool(
+                court and re.search(r"court|tribunal|commission|nclt|nclat", court, re.I)
+            )
+            if looks_like_bare_statute and not looks_like_court:
+                continue
+
+            # Date — dedicated date element, else the "... on DD Month, YYYY"
+            # suffix Kanoon appends to judgment titles
             date = None
             date_el = container.find(
                 True, class_=re.compile(r"date", re.I)
             )
             if date_el:
                 date = _normalize_date(_clean_text(date_el))
+            if not date:
+                title_date = re.search(r"\bon\s+(\d{1,2}\s+\w+,?\s+\d{4})\s*$", title or "")
+                if title_date:
+                    date = _normalize_date(title_date.group(1))
 
             # Snippet
             snippet_el = container.find(
-                True, class_=re.compile(r"snippet|excerpt|fragment", re.I)
+                True, class_=re.compile(r"headline|snippet|excerpt|fragment", re.I)
             )
             snippet = _clean_text(snippet_el) if snippet_el else _clean_text(container)
             # Remove title from snippet
@@ -301,7 +334,7 @@ class KanoonService:
                 results.append(
                     SearchResult(
                         title=title,
-                        url=href,
+                        url=canonical_url,
                         doc_id=doc_id,
                         court=court,
                         date=date,
@@ -315,45 +348,73 @@ class KanoonService:
         """Parse a single judgment page into a JudgmentDetail."""
         soup = BeautifulSoup(html, "html.parser")
 
-        # Title — usually in the first <h1> or <h2>
-        title_el = soup.find("h1") or soup.find("h2")
+        # Title — Kanoon's current markup uses <h2 class="doc_title">;
+        # generic <h1>/<h2> fall back to the page-chrome "Indian Kanoon -
+        # Search engine..." heading, so try the specific class first.
+        title_el = (
+            soup.find(True, class_=re.compile(r"\bdoc_title\b", re.I))
+            or soup.find("h1")
+            or soup.find("h2")
+        )
         title = _clean_text(title_el) if title_el else f"Judgment {doc_id}"
 
         # URL
         url = KANOON_DOC_URL.format(doc_id=doc_id)
 
-        # Full text — try content div, then body
+        # Full text — Kanoon's current markup holds the judgment body in
+        # <div class="judgments"> (nested inside <div class="maindoc">).
+        # Older/generic selectors kept as fallbacks; "body" is a last
+        # resort since a substring class match like "content" can also
+        # catch unrelated chrome (e.g. "mobile-menu-content").
         content = (
-            soup.find("div", id="content")
-            or soup.find("div", class_=re.compile(r"content|main|article", re.I))
+            soup.find("div", class_=re.compile(r"\bjudgments\b", re.I))
+            or soup.find("div", class_=re.compile(r"\bmaindoc\b", re.I))
+            or soup.find("div", id="content")
             or soup.find("article")
+            or soup.find("div", class_=re.compile(r"\b(?:content|main|article)\b", re.I))
             or soup.find("body")
         )
         text = _clean_text(content) if content else ""
 
-        # Court
+        # Court — prefer the dedicated docsource element, fall back to
+        # regex over the body text
         court = None
-        for pat in COURT_PATTERNS:
-            m = pat.search(text)
-            if m:
-                court = m.group(1).strip()
-                break
+        court_el = soup.find(True, class_=re.compile(r"\bdocsource_main\b", re.I))
+        if court_el:
+            court = _clean_text(court_el)
+        if not court:
+            for pat in COURT_PATTERNS:
+                m = pat.search(text)
+                if m:
+                    court = m.group(1).strip()
+                    break
 
-        # Date
+        # Date — Kanoon appends "... on DD Month, YYYY" to the doc title;
+        # fall back to regex over the body text
         date = None
-        for pat in DATE_PATTERNS:
-            m = pat.search(text)
-            if m:
-                date = _normalize_date(m.group(1).strip())
-                break
+        title_date = re.search(r"\bon\s+(\d{1,2}\s+\w+,?\s+\d{4})\s*$", title or "")
+        if title_date:
+            date = _normalize_date(title_date.group(1))
+        if not date:
+            for pat in DATE_PATTERNS:
+                m = pat.search(text)
+                if m:
+                    date = _normalize_date(m.group(1).strip())
+                    break
 
-        # Bench
+        # Bench — prefer the dedicated doc_bench element, fall back to
+        # regex over the body text
         bench = None
-        for pat in BENCH_PATTERNS:
-            m = pat.search(text)
-            if m:
-                bench = m.group(1).strip()
-                break
+        bench_el = soup.find(True, class_=re.compile(r"\bdoc_bench\b", re.I))
+        if bench_el:
+            bench = _clean_text(bench_el)
+            bench = re.sub(r"^Bench\s*:\s*", "", bench, flags=re.IGNORECASE)
+        if not bench:
+            for pat in BENCH_PATTERNS:
+                m = pat.search(text)
+                if m:
+                    bench = m.group(1).strip()
+                    break
 
         # Citations
         citations = []
@@ -388,15 +449,20 @@ class KanoonService:
         year_from: Optional[int] = None,
         year_to: Optional[int] = None,
         limit: int = 10,
+        pagenum: int = 0,
     ) -> List[SearchResult]:
         """
         Search Indian Kanoon and return parsed results.
 
         Uses cache first, then fixtures (if enabled), then live scraping.
+
+        Args:
+            pagenum: Zero-indexed result page (Kanoon returns ~10 results
+                per page). Defaults to the first page.
         """
         # Build a cache key from the search params
         cache_key = (
-            f"kanoon:search:{query}:{court}:{year_from}:{year_to}:{limit}"
+            f"kanoon:search:{query}:{court}:{year_from}:{year_to}:{limit}:{pagenum}"
         )
 
         # 1) Check cache
@@ -420,6 +486,8 @@ class KanoonService:
             params["minYear"] = year_from
         if year_to:
             params["maxYear"] = year_to
+        if pagenum:
+            params["pagenum"] = pagenum
 
         logger.info(f"Live search on Kanoon: query='{query}', params={params}")
         await self._delay()
