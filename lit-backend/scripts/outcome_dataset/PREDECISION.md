@@ -2,6 +2,20 @@
 
 The confirmed 187-case judgment-derived result remains the incumbent. This workflow requires **new, separate pre-decision text** for at least 300 cases. Cached judgments in `raw_cache/` are not accepted as feature input.
 
+## Public collection status (25 September 2026)
+
+The public-source pilot found one original criminal special-leave petition posted by the [Internet Freedom Foundation](https://internetfreedom.in/the-supreme-court-refuses-special-leave-petition-challenging-the-unconstitutional-retention-of-mobile-data-of-journalists/). Its PDF states `FILED ON: 22.12.2022` and contains 1,553 OCR words across nine pages. The downloaded PDF SHA-256 is `72d4601764dfb6e603f2b6704e8c8b1df515bb493b50a68aab71afbf3ea5bc87`. The collection command below downloads it to ignored local storage and records the PDF/text SHA-256 hashes, source URL, page count, extraction method, and leakage cue flag. It intentionally marks the case `candidate_only`: the linked article reports a dismissal but gives a decision date that has not been confirmed against an official order. The case has no verified outcome and is excluded from training. The seed is a source pointer, not a verified training row.
+
+```bash
+./venv/bin/python -m scripts.outcome_dataset.collect_public_filings \
+  --seeds scripts/outcome_dataset/public_filing_seeds.csv \
+  --output-dir data/outcome_dataset/predecision/candidates/public_v1
+```
+
+The Supreme Court's [Office Reports](https://www.sci.gov.in/office-report-case-no/) are public, but a sampled [fresh-case report](https://api.sci.gov.in/officereport/2024/42100/42100_2024_2024-11-29_2684.html) listed filing dates and procedural entries without the petition's facts or arguments. It cannot be substituted for an original petition. The Court's [e-filing FAQ](https://efiling3.sci.gov.in/resources/FAQ) describes document access through registration or a copying application, so the public office-report site is not a bulk petition corpus. Existing public judgment datasets, including [ILDC](https://exploration-lab.github.io/IL-TUR/docs/tasks/court-judgment-prediction-with-explanation-cjpe/) and [TathyaNyaya](https://github.com/ShubhamKumarNigam/TathyaNyaya-and-FactLegalLlama), derive inputs from final judgments and do not meet this experiment's predecision provenance requirement. These findings explain why the pilot has not produced a training manifest or new accuracy score.
+
+To expand the corpus, add links to original predecision petitions or independently published predecision case summaries to the seed CSV. For each case, verify the document's filing date and matter identity, obtain its final court order, verify dismissal versus full/partial relief and appellant direction, then create a `filings.csv` training manifest. Keep ambiguous and still-pending matters as candidates. The 300-case and review gates below remain mandatory.
+
 ## Input files
 
 Create a UTF-8 CSV manifest and keep its text files beneath the manifest directory. Required columns:
