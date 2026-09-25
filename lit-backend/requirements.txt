@@ -11,6 +11,9 @@ pydantic==2.7.3
 pydantic-settings==2.3.4
 loguru==0.7.2
 lxml==5.2.2
+pypdf==5.9.0
+python-docx==1.1.2
+python-multipart==0.0.9
 
 # Offline dataset-building / model-training scripts (scripts/outcome_dataset/) —
 # not imported by the live app.

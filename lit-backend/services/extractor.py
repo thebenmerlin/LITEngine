@@ -40,8 +40,20 @@ logger = get_logger(__name__)
 # Constants
 # ---------------------------------------------------------------------------
 
+# api-inference.huggingface.co no longer resolves — see the identical
+# note in services/embedder.py. Migrated to the router.huggingface.co
+# hf-inference provider (verified live 2026-09-25). NOTE (separate,
+# lower-priority finding from that same test): the live response uses
+# generic labels ("LABEL_0"/"LABEL_1"), not the semantic entity names
+# (LAW/ACT/COURT/...) that ENTITY_MAP below expects — the base
+# law-ai/InLegalBERT checkpoint doesn't appear to ship those label names
+# via this pipeline. Rule-based extraction (extract_rules_only, always
+# merged in) is unaffected and remains the reliable path; the model's
+# contribution is currently a no-op rather than actively wrong, since the
+# unmapped labels just don't populate any field. Left as-is — fixing the
+# label mapping is a separate task from unblocking the dead endpoint.
 HF_INFLEGALBERT_URL = (
-    "https://api-inference.huggingface.co/models/law-ai/InLegalBERT"
+    "https://router.huggingface.co/hf-inference/models/law-ai/InLegalBERT/pipeline/token-classification"
 )
 
 # NER entity group → schema field mapping

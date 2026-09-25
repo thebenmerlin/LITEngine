@@ -198,6 +198,40 @@ export async function runSimulation({ caseProfile, precedents = [], graphStats =
 }
 
 /* --------------------------------------------------------------------------- */
+/*  Case Chat                                                                   */
+/* --------------------------------------------------------------------------- */
+
+/**
+ * Ask a question grounded in one case's text. Stateless: the full case
+ * text and prior turns are sent each call; the backend caches per-case
+ * embeddings internally so repeat questions about the same case are cheap.
+ *
+ * @param {{ caseText: string, question: string, history?: {role: string, content: string}[] }} params
+ * @returns {Promise<{ answer: string, sources: {index: number, text: string, similarity_score: number}[], method: string }>}
+ */
+export async function askCaseChat({ caseText, question, history = [] }) {
+  return request('/chat/ask', {
+    method: 'POST',
+    body: JSON.stringify({ case_text: caseText, question, history }),
+  })
+}
+
+/**
+ * Upload a case document (.txt, .docx, .pdf) and get back its extracted text.
+ *
+ * @param {File} file
+ * @returns {Promise<{ text: string, filename: string, word_count: number }>}
+ */
+export async function uploadCaseFile(file) {
+  const formData = new FormData()
+  formData.append('file', file)
+  // Override the default JSON Content-Type — the browser must set its own
+  // multipart boundary header for FormData, which it can only do if no
+  // Content-Type is set manually.
+  return request('/chat/upload', { method: 'POST', body: formData, headers: {} })
+}
+
+/* --------------------------------------------------------------------------- */
 /*  Health                                                                      */
 /* --------------------------------------------------------------------------- */
 

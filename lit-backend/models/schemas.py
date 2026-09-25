@@ -351,3 +351,34 @@ class EmbeddingResponse(BaseModel):
     embeddings: List[List[float]]
     model: str
     dimension: int
+
+
+# --- Case Chat ---
+
+class ChatMessage(BaseModel):
+    role: str = Field(..., description="'user' or 'assistant'")
+    content: str
+
+
+class ChatRequest(BaseModel):
+    case_text: str = Field(..., description="Full text of the case being discussed")
+    question: str
+    history: List[ChatMessage] = Field(default_factory=list, description="Prior turns, oldest first")
+
+
+class ChatSource(BaseModel):
+    index: int = Field(..., description="1-based, matches the [S1]/[S2] labels used in the answer")
+    text: str
+    similarity_score: float
+
+
+class ChatResponse(BaseModel):
+    answer: str
+    sources: List[ChatSource]
+    method: str = Field(..., description="'generated' (model answered) or 'extractive' (fallback: raw top excerpt, no model available)")
+
+
+class CaseUploadResponse(BaseModel):
+    text: str
+    filename: str
+    word_count: int

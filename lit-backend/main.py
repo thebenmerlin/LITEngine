@@ -10,9 +10,10 @@ from utils.cache import cache
 from services.embedder import embedder_service
 from services.kanoon import kanoon_service
 from services.outcome_model import is_model_loaded
+from services.case_chat import case_chat_service
 
 # Routers
-from routers import precedent, facts, graph, simulation
+from routers import precedent, facts, graph, simulation, chat
 
 logger = get_logger(__name__)
 
@@ -64,6 +65,7 @@ async def lifespan(app: FastAPI):
     cache.clear()
     await embedder_service.close()
     await kanoon_service.close()
+    await case_chat_service.close()
     logger.info("Application shutdown complete")
 
 
@@ -122,6 +124,7 @@ def create_app() -> FastAPI:
     app.include_router(facts.router, prefix="/api/v1")
     app.include_router(graph.router, prefix="/api/v1")
     app.include_router(simulation.router, prefix="/api/v1")
+    app.include_router(chat.router, prefix="/api/v1")
 
     return app
 

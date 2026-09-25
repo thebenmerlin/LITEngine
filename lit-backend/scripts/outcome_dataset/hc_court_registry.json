@@ -1,0 +1,275 @@
+{
+  "Patna": [
+    {
+      "court_code": "10_8",
+      "bench": "patnahcucisdb94",
+      "rows_2023": 135913
+    }
+  ],
+  "Sikkim": [
+    {
+      "court_code": "11_24",
+      "bench": "sikkimhc_pg",
+      "rows_2023": 148
+    }
+  ],
+  "Manipur": [
+    {
+      "court_code": "14_25",
+      "bench": "manipurhc_pg",
+      "rows_2023": 1885
+    }
+  ],
+  "Tripura": [
+    {
+      "court_code": "16_20",
+      "bench": "thcnc",
+      "rows_2023": 2242
+    }
+  ],
+  "Meghalaya": [
+    {
+      "court_code": "17_21",
+      "bench": "meghalaya",
+      "rows_2023": 1476
+    }
+  ],
+  "Gauhati": [
+    {
+      "court_code": "18_6",
+      "bench": "arghccis",
+      "rows_2023": 1161
+    },
+    {
+      "court_code": "18_6",
+      "bench": "asghccis",
+      "rows_2023": 25294
+    },
+    {
+      "court_code": "18_6",
+      "bench": "azghccis",
+      "rows_2023": 552
+    },
+    {
+      "court_code": "18_6",
+      "bench": "nlghccis",
+      "rows_2023": 792
+    }
+  ],
+  "Calcutta": [
+    {
+      "court_code": "19_16",
+      "bench": "calcutta_appellate_side",
+      "rows_2023": 71942
+    },
+    {
+      "court_code": "19_16",
+      "bench": "calcutta_circuit_bench_at_jalpaiguri",
+      "rows_2023": 4914
+    },
+    {
+      "court_code": "19_16",
+      "bench": "calcutta_circuit_bench_at_port_blair",
+      "rows_2023": 1351
+    },
+    {
+      "court_code": "19_16",
+      "bench": "calcutta_original_side",
+      "rows_2023": 7116
+    }
+  ],
+  "Jammu & Kashmir": [
+    {
+      "court_code": "1_12",
+      "bench": "jammuhc",
+      "rows_2023": 7885
+    },
+    {
+      "court_code": "1_12",
+      "bench": "kashmirhc",
+      "rows_2023": 4815
+    }
+  ],
+  "Jharkhand": [
+    {
+      "court_code": "20_7",
+      "bench": "jhar_pg",
+      "rows_2023": 46010
+    }
+  ],
+  "Orissa": [
+    {
+      "court_code": "21_11",
+      "bench": "cisnc",
+      "rows_2023": 111641
+    }
+  ],
+  "Chattisgarh": [
+    {
+      "court_code": "22_18",
+      "bench": "cghccisdb",
+      "rows_2023": 42179
+    }
+  ],
+  "Madhya Pradesh": [
+    {
+      "court_code": "23_23",
+      "bench": "mphc_db_gwl",
+      "rows_2023": 25241
+    },
+    {
+      "court_code": "23_23",
+      "bench": "mphc_db_ind",
+      "rows_2023": 31334
+    },
+    {
+      "court_code": "23_23",
+      "bench": "mphc_db_jbp",
+      "rows_2023": 64497
+    }
+  ],
+  "Gujarat": [
+    {
+      "court_code": "24_17",
+      "bench": "gujarathc",
+      "rows_2023": 4513
+    }
+  ],
+  "Bombay": [
+    {
+      "court_code": "27_1",
+      "bench": "hcaurdb",
+      "rows_2023": 39468
+    },
+    {
+      "court_code": "27_1",
+      "bench": "hcbgoa",
+      "rows_2023": 2432
+    },
+    {
+      "court_code": "27_1",
+      "bench": "kolhcdb",
+      "rows_2023": 7777
+    },
+    {
+      "court_code": "27_1",
+      "bench": "newas",
+      "rows_2023": 41217
+    },
+    {
+      "court_code": "27_1",
+      "bench": "newos",
+      "rows_2023": 4156
+    },
+    {
+      "court_code": "27_1",
+      "bench": "newos_spl",
+      "rows_2023": 54
+    },
+    {
+      "court_code": "27_1",
+      "bench": "testcase",
+      "rows_2023": 16083
+    }
+  ],
+  "Andhra Pradesh": [
+    {
+      "court_code": "28_2",
+      "bench": "aphc",
+      "rows_2023": 99768
+    },
+    {
+      "court_code": "36_29",
+      "bench": "taphc",
+      "rows_2023": 66857
+    }
+  ],
+  "Karnataka": [
+    {
+      "court_code": "29_3",
+      "bench": "karhcdharwad",
+      "rows_2023": 18627
+    },
+    {
+      "court_code": "29_3",
+      "bench": "karhckalaburagi",
+      "rows_2023": 10378
+    },
+    {
+      "court_code": "29_3",
+      "bench": "karnataka_bng_old",
+      "rows_2023": 51097
+    }
+  ],
+  "Himachal Pradesh": [
+    {
+      "court_code": "2_5",
+      "bench": "cmis",
+      "rows_2023": 20635
+    }
+  ],
+  "Kerala": [
+    {
+      "court_code": "32_4",
+      "bench": "highcourtofkerala",
+      "rows_2023": 83859
+    }
+  ],
+  "Madras": [
+    {
+      "court_code": "33_10",
+      "bench": "hc_cis_mas",
+      "rows_2023": 108552
+    },
+    {
+      "court_code": "33_10",
+      "bench": "mdubench",
+      "rows_2023": 72720
+    }
+  ],
+  "Punjab-Haryana": [
+    {
+      "court_code": "3_22",
+      "bench": "phhc",
+      "rows_2023": 149388
+    }
+  ],
+  "Uttarakhand": [
+    {
+      "court_code": "5_15",
+      "bench": "ukhcucis_pg",
+      "rows_2023": 14570
+    }
+  ],
+  "Delhi": [
+    {
+      "court_code": "7_26",
+      "bench": "dhcdb",
+      "rows_2023": 8465
+    }
+  ],
+  "Rajasthan": [
+    {
+      "court_code": "8_9",
+      "bench": "jaipur",
+      "rows_2023": 63646
+    },
+    {
+      "court_code": "8_9",
+      "bench": "rhcjodh240618",
+      "rows_2023": 55541
+    }
+  ],
+  "Allahabad": [
+    {
+      "court_code": "9_13",
+      "bench": "cisdb_16012018",
+      "rows_2023": 443845
+    },
+    {
+      "court_code": "9_13",
+      "bench": "cishclko",
+      "rows_2023": 88244
+    }
+  ]
+}

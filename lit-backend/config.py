@@ -44,6 +44,21 @@ class Settings(BaseSettings):
     OUTCOME_MODEL_PATH: str = ""  # Optional gated, versioned artifact path
     PRECEDENT_INDEX_PATH: str = ""  # Optional dated precedent index used by live search
 
+    # Case chat — instruction-tuned generation model, called through HF's
+    # OpenAI-compatible chat-completions router (multi-provider, generally
+    # better free-tier availability for conversational models than the
+    # older single-provider api-inference.huggingface.co/models/<id> path
+    # that embedder.py/extractor.py use for embeddings/NER). Override via
+    # env var if this model becomes unavailable — no code change needed.
+    # Verified live against the real account 2026-09-25 — Qwen2.5-7B-Instruct
+    # and several other candidates (Mistral-7B-Instruct-v0.3, zephyr-7b-beta,
+    # Phi-3.5-mini-instruct, gemma-2-9b-it) came back "not supported by any
+    # provider you have enabled" for this account; Llama-3.1-8B-Instruct and
+    # Qwen2.5-72B-Instruct both worked. Picked the 8B model for lower demo
+    # latency over the 72B one.
+    CHAT_MODEL: str = "meta-llama/Llama-3.1-8B-Instruct"
+    CHAT_TOP_K: int = 5
+
     @property
     def IS_PRODUCTION(self) -> bool:
         """True when running in production environment."""

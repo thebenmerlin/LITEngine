@@ -255,6 +255,11 @@ a { color: inherit; text-decoration: none; }
 .button-quiet:hover { background: var(--surface-soft); }
 .text-button { display: inline-flex; align-items: center; gap: 7px; padding: 6px 0; border: 0; background: transparent; color: var(--muted); font-size: 11px; font-weight: 600; }
 .text-button:hover { color: var(--accent); }
+
+.sample-menu { position: relative; }
+.sample-menu-list { position: absolute; z-index: 20; top: calc(100% + 6px); left: 0; min-width: 320px; max-width: 420px; margin: 0; padding: 6px; list-style: none; border: 1px solid var(--line); border-radius: 6px; background: var(--surface); box-shadow: 0 10px 28px rgba(0, 0, 0, .14); }
+.sample-menu-list button { display: block; width: 100%; padding: 9px 10px; border: 0; border-radius: 4px; background: transparent; color: var(--ink); font-size: 12px; line-height: 1.4; text-align: left; cursor: pointer; }
+.sample-menu-list button:hover { background: var(--surface-soft); color: var(--accent-dark); }
 .app-content { max-width: 1640px; padding: 40px 48px 90px; margin: 0 auto; }
 .page-stack { display: flex; flex-direction: column; gap: 22px; }
 .page-heading { display: flex; justify-content: space-between; gap: 30px; align-items: end; margin-bottom: 7px; }
@@ -643,3 +648,32 @@ button.saved-row:hover { color: var(--accent); }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; transition-duration: .01ms !important; } }
 
 @media print { .sidebar, .topbar, .case-composer, .button, .text-button { display: none !important; } .app-main { margin: 0; } .app-content { padding: 0; max-width: none; } body { background: white; color: black; } }
+
+/* -- Case chat --------------------------------------------------------- */
+
+.chat-panel { display: flex; flex-direction: column; gap: 12px; padding: 18px; }
+.chat-thread { display: flex; flex-direction: column; gap: 14px; max-height: 480px; min-height: 180px; overflow-y: auto; padding-right: 4px; }
+.chat-empty-hint { padding: 6px 2px; }
+.chat-bubble { max-width: 82%; padding: 11px 14px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface-soft); }
+.chat-bubble p { margin: 4px 0 0; font-size: 13px; line-height: 1.6; white-space: pre-wrap; }
+.chat-bubble-role { font-size: 10px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); }
+.chat-bubble-user { align-self: flex-end; background: var(--accent-soft); border-color: var(--accent-soft); }
+.chat-bubble-assistant { align-self: flex-start; }
+.chat-bubble-pending { display: flex; flex-direction: column; gap: 6px; }
+.chat-sources { margin-top: 9px; font-size: 11px; }
+.chat-sources summary { cursor: pointer; color: var(--muted); }
+.chat-sources-list { list-style: none; margin: 8px 0 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.chat-sources-list li { display: flex; gap: 8px; align-items: flex-start; }
+.chat-sources-list p { margin: 0; font-size: 11.5px; line-height: 1.5; color: var(--muted); }
+.chat-source-tag { flex: none; padding: 1px 6px; border: 1px solid var(--line); border-radius: 3px; font-size: 10px; font-weight: 700; color: var(--accent-dark); }
+.chat-input-row { display: flex; gap: 10px; align-items: flex-end; }
+.chat-input-row textarea { flex: 1; resize: none; padding: 10px 12px; border: 1px solid var(--line); border-radius: 5px; background: var(--surface); color: var(--ink); font-size: 13px; font-family: inherit; }
+.chat-input-row .button { align-self: stretch; padding: 0 16px; }
+
+.upload-case { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.upload-case-trigger { display: inline-flex; align-items: center; gap: 7px; min-height: 36px; padding: 0 14px; border: 1px solid var(--line); border-radius: 5px; background: var(--surface); color: var(--ink-strong); font-size: 11px; font-weight: 700; cursor: pointer; transition: border-color .15s, transform .15s; }
+.upload-case-trigger:hover { border-color: var(--accent); transform: translateY(-1px); }
+.upload-case-trigger.disabled { opacity: .6; pointer-events: none; }
+.upload-case-trigger.compact { align-self: stretch; min-height: unset; width: 42px; padding: 0; justify-content: center; border-radius: 5px; }
+.upload-case input:focus-visible + .upload-case-trigger { outline: 2px solid var(--accent); outline-offset: 2px; }
+.upload-case-status { font-size: 11px; }

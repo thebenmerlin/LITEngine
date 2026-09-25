@@ -5,6 +5,7 @@ import {
   FileText,
   GitBranch,
   LayoutDashboard,
+  MessageCircle,
   PanelLeftClose,
   PanelLeftOpen,
   Search,
@@ -21,6 +22,7 @@ const links = [
   { to: '/precedent-search', label: 'Precedents', icon: Search },
   { to: '/argument-graph', label: 'Argument map', icon: GitBranch },
   { to: '/simulation', label: 'Outcome analysis', icon: ChartNoAxesCombined },
+  { to: '/case-chat', label: 'Ask the case', icon: MessageCircle },
   { to: '/what-if', label: 'Scenarios', icon: SlidersHorizontal },
 ]
 

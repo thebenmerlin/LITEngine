@@ -9,6 +9,7 @@ import FactExtraction from './pages/FactExtraction'
 import PrecedentSearch from './pages/PrecedentSearch'
 import ArgumentGraph from './pages/ArgumentGraph'
 import Simulation from './pages/Simulation'
+import CaseChat from './pages/CaseChat'
 import WhatIf from './pages/WhatIf'
 import Settings from './pages/Settings'
 import './styles/globals.css'
@@ -27,6 +28,7 @@ export default function App() {
                   <Route path="/precedent-search" element={<PrecedentSearch />} />
                   <Route path="/argument-graph" element={<ArgumentGraph />} />
                   <Route path="/simulation" element={<Simulation />} />
+                  <Route path="/case-chat" element={<CaseChat />} />
                   <Route path="/what-if" element={<WhatIf />} />
                   <Route path="/settings" element={<Settings />} />
                 </Route>

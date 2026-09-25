@@ -11,10 +11,48 @@ import {
 import { useSettings } from '../hooks/useSettings.jsx'
 
 const WorkspaceContext = createContext(null)
-const DRAFT_KEY = 'lit-active-case-draft'
-const APPELLANT_KEY = 'lit-active-case-appellant'
-const FILING_DATE_KEY = 'lit-active-case-filing-date'
 const INITIAL_STATUS = { facts: 'idle', precedents: 'idle', graph: 'idle', simulation: 'idle' }
+
+// Everything about "the current case" lives in localStorage (not
+// sessionStorage) so it survives a closed tab or a restarted browser, not
+// just a reload — the whole point being a demo can be picked back up
+// exactly where it left off. Every persisted value goes through the same
+// JSON helpers so the persistence layer is uniform and each add is a
+// one-line change instead of a bespoke effect.
+const STORE_KEYS = {
+  caseText: 'lit-workspace.case-text',
+  appellantType: 'lit-workspace.appellant-type',
+  filingDate: 'lit-workspace.filing-date',
+  analyzedText: 'lit-workspace.analyzed-text',
+  query: 'lit-workspace.query',
+  profile: 'lit-workspace.profile',
+  precedents: 'lit-workspace.precedents',
+  graph: 'lit-workspace.graph',
+  simulation: 'lit-workspace.simulation',
+  chatMessages: 'lit-workspace.chat-messages',
+}
+
+function readStored(key, fallback) {
+  try {
+    const raw = localStorage.getItem(key)
+    return raw === null ? fallback : JSON.parse(raw)
+  } catch {
+    return fallback
+  }
+}
+
+function writeStored(key, value) {
+  try {
+    if (value === null || value === undefined) localStorage.removeItem(key)
+    else localStorage.setItem(key, JSON.stringify(value))
+  } catch { /* storage may be disabled or full — persistence is a convenience, not a requirement */ }
+}
+
+function usePersistedState(key, fallback) {
+  const [value, setValue] = useState(() => readStored(key, fallback))
+  useEffect(() => { writeStored(key, value) }, [key, value])
+  return [value, setValue]
+}
 
 function messageFor(error) {
   if (error instanceof ApiError) return error.detail || error.message
@@ -36,44 +74,36 @@ async function resolveExtraction(caseText, useModel) {
 
 export function WorkspaceProvider({ children }) {
   const { settings } = useSettings()
-  const [caseText, setCaseText] = useState(() => {
-    try { return sessionStorage.getItem(DRAFT_KEY) || '' } catch { return '' }
-  })
-  const [appellantType, setAppellantTypeState] = useState(() => {
-    try { return sessionStorage.getItem(APPELLANT_KEY) || '' } catch { return '' }
-  })
-  const [filingDate, setFilingDateState] = useState(() => {
-    try { return sessionStorage.getItem(FILING_DATE_KEY) || '' } catch { return '' }
-  })
-  const [analyzedText, setAnalyzedText] = useState('')
-  const [query, setQuery] = useState('')
-  const [profile, setProfile] = useState(null)
-  const [precedents, setPrecedents] = useState(null)
-  const [graph, setGraph] = useState(null)
-  const [simulation, setSimulation] = useState(null)
-  const [status, setStatus] = useState(INITIAL_STATUS)
+  const [caseText, setCaseText] = usePersistedState(STORE_KEYS.caseText, '')
+  const [appellantType, setAppellantTypeState] = usePersistedState(STORE_KEYS.appellantType, '')
+  const [filingDate, setFilingDateState] = usePersistedState(STORE_KEYS.filingDate, '')
+  const [analyzedText, setAnalyzedText] = usePersistedState(STORE_KEYS.analyzedText, '')
+  const [query, setQuery] = usePersistedState(STORE_KEYS.query, '')
+  const [profile, setProfile] = usePersistedState(STORE_KEYS.profile, null)
+  const [precedents, setPrecedents] = usePersistedState(STORE_KEYS.precedents, null)
+  const [graph, setGraph] = usePersistedState(STORE_KEYS.graph, null)
+  const [simulation, setSimulation] = usePersistedState(STORE_KEYS.simulation, null)
+  const [chatMessages, setChatMessages] = usePersistedState(STORE_KEYS.chatMessages, [])
+  // Restored results should read as "done", not "idle" — WorkflowStrip
+  // already keys off presence of the data itself, but this keeps the
+  // running-spinner/empty-panel logic on every page consistent on a
+  // freshly reloaded workspace too, not just a freshly computed one.
+  const [status, setStatus] = useState(() => ({
+    facts: readStored(STORE_KEYS.profile, null) ? 'done' : 'idle',
+    precedents: readStored(STORE_KEYS.precedents, null) ? 'done' : 'idle',
+    graph: readStored(STORE_KEYS.graph, null) ? 'done' : 'idle',
+    simulation: readStored(STORE_KEYS.simulation, null) ? 'done' : 'idle',
+  }))
   const [errors, setErrors] = useState({})
   const [health, setHealth] = useState('checking')
   const runId = useRef(0)
   const busy = Object.values(status).some((value) => value === 'running')
 
-  useEffect(() => {
-    try { sessionStorage.setItem(DRAFT_KEY, caseText) } catch { /* storage may be disabled */ }
-  }, [caseText])
-
-  useEffect(() => {
-    try { sessionStorage.setItem(APPELLANT_KEY, appellantType) } catch { /* storage may be disabled */ }
-  }, [appellantType])
-
-  useEffect(() => {
-    try { sessionStorage.setItem(FILING_DATE_KEY, filingDate) } catch { /* storage may be disabled */ }
-  }, [filingDate])
-
   const setAppellantType = useCallback((value) => {
     setAppellantTypeState(value)
     setSimulation(null)
     setStatus((current) => ({ ...current, simulation: 'idle' }))
-  }, [])
+  }, [setAppellantTypeState, setSimulation])
 
   const setFilingDate = useCallback((value) => {
     setFilingDateState(value)
@@ -83,7 +113,7 @@ export function WorkspaceProvider({ children }) {
     setGraph(null)
     setSimulation(null)
     setStatus(INITIAL_STATUS)
-  }, [])
+  }, [setFilingDateState, setProfile, setAnalyzedText, setPrecedents, setGraph, setSimulation])
 
   useEffect(() => {
     let active = true
@@ -115,12 +145,10 @@ export function WorkspaceProvider({ children }) {
     setPrecedents(null)
     setGraph(null)
     setSimulation(null)
+    setChatMessages([])
     setStatus(INITIAL_STATUS)
     setErrors({})
-    try { sessionStorage.removeItem(DRAFT_KEY) } catch { /* storage may be disabled */ }
-    try { sessionStorage.removeItem(APPELLANT_KEY) } catch { /* storage may be disabled */ }
-    try { sessionStorage.removeItem(FILING_DATE_KEY) } catch { /* storage may be disabled */ }
-  }, [])
+  }, [setCaseText, setAppellantTypeState, setFilingDateState, setAnalyzedText, setQuery, setProfile, setPrecedents, setGraph, setSimulation, setChatMessages])
 
   const runAnalysis = useCallback(async () => {
     const text = caseText.trim()
@@ -273,7 +301,7 @@ export function WorkspaceProvider({ children }) {
   return (
     <WorkspaceContext.Provider value={{
       caseText, setCaseText, appellantType, setAppellantType, filingDate, setFilingDate, analyzedText, query, setQuery, profile, precedents,
-      graph, simulation, status, errors, health, busy, stale, clearCase,
+      graph, simulation, chatMessages, setChatMessages, status, errors, health, busy, stale, clearCase,
       runAnalysis, search, refreshGraph, refreshSimulation,
     }}>
       {children}

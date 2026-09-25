@@ -42,9 +42,14 @@ logger = get_logger(__name__)
 # Constants
 # ---------------------------------------------------------------------------
 
+# api-inference.huggingface.co (the old single-provider serverless
+# endpoint) no longer resolves at all — confirmed via a live DNS lookup
+# (2026-09-25) — HF fully moved to the router.huggingface.co "Inference
+# Providers" gateway. hf-inference is HF's own first-party provider under
+# that gateway and serves this model's pipeline directly (verified live).
 HF_API_URL = (
-    "https://api-inference.huggingface.co/models/"
-    "sentence-transformers/all-MiniLM-L6-v2"
+    "https://router.huggingface.co/hf-inference/models/"
+    "sentence-transformers/all-MiniLM-L6-v2/pipeline/feature-extraction"
 )
 
 MODEL_NAME = "sentence-transformers/all-MiniLM-L6-v2"
@@ -247,7 +252,17 @@ class EmbedderService:
                 resp.raise_for_status()
                 result = resp.json()
 
-                # The API can return a list of embeddings or a dict with "embeddings" key
+                # The router's hf-inference feature-extraction pipeline
+                # returns a flat list of floats for a single input string
+                # (verified live 2026-09-25) — checked first since a bare
+                # float list would otherwise also match the nested-list
+                # check below on result[0] being a list (it isn't, so this
+                # ordering doesn't actually matter for correctness, but the
+                # flat case is what this endpoint actually returns).
+                if isinstance(result, list) and result and isinstance(result[0], (int, float)):
+                    return result
+                # Some pipelines/shapes return a list of embeddings or a
+                # dict with an "embeddings" key — kept for robustness.
                 if isinstance(result, list) and result and isinstance(result[0], list):
                     return result[0]
                 if isinstance(result, dict) and "embeddings" in result:

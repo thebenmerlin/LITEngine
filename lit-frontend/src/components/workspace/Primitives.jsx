@@ -1,6 +1,7 @@
+import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { ArrowRight, CircleCheck, CircleDot, LoaderCircle, RotateCcw, Sparkles } from 'lucide-react'
-import { SAMPLE_CASE_TEXT } from '../../data/sampleCases'
+import { ArrowRight, ChevronDown, CircleCheck, CircleDot, LoaderCircle, RotateCcw, Sparkles } from 'lucide-react'
+import { SAMPLE_CASES } from '../../data/sampleCases'
 import { useWorkspace } from '../../workspace/WorkspaceContext'
 
 export const percent = (value) => value == null ? '—' : `${Math.round(value * 100)}%`
@@ -32,6 +33,48 @@ export function EmptyPanel({ number, title, body, action, icon: Icon }) {
   </div>
 }
 
+export function SampleCaseMenu({ disabled = false }) {
+  const { setCaseText, setAppellantType, setFilingDate } = useWorkspace()
+  const [open, setOpen] = useState(false)
+  const rootRef = useRef(null)
+
+  useEffect(() => {
+    if (!open) return undefined
+    function onPointerDown(event) {
+      if (rootRef.current && !rootRef.current.contains(event.target)) setOpen(false)
+    }
+    function onKeyDown(event) {
+      if (event.key === 'Escape') setOpen(false)
+    }
+    document.addEventListener('mousedown', onPointerDown)
+    document.addEventListener('keydown', onKeyDown)
+    return () => {
+      document.removeEventListener('mousedown', onPointerDown)
+      document.removeEventListener('keydown', onKeyDown)
+    }
+  }, [open])
+
+  function pick(sample) {
+    setCaseText(sample.text)
+    setAppellantType(sample.appellantType)
+    setFilingDate(sample.filingDate)
+    setOpen(false)
+  }
+
+  return <div className="sample-menu" ref={rootRef}>
+    <button type="button" className="text-button" onClick={() => setOpen((value) => !value)} disabled={disabled} aria-haspopup="menu" aria-expanded={open}>
+      <Sparkles size={15} /> Try sample <ChevronDown size={13} />
+    </button>
+    {open && <ul className="sample-menu-list" role="menu">
+      {SAMPLE_CASES.map((sample) => (
+        <li key={sample.id} role="none">
+          <button type="button" role="menuitem" onClick={() => pick(sample)}>{sample.label}</button>
+        </li>
+      ))}
+    </ul>}
+  </div>
+}
+
 export function CaseComposer({ compact = false, showHeading = true }) {
   const { caseText, setCaseText, appellantType, filingDate, runAnalysis, busy, stale, status, errors } = useWorkspace()
   const activeStep = Object.entries(status).find(([, value]) => value === 'running')?.[0]
@@ -47,7 +90,7 @@ export function CaseComposer({ compact = false, showHeading = true }) {
     <div className="composer-footer">
       <div className="composer-note">{caseText.length ? `${caseText.trim().split(/\s+/).length} words` : 'Start with the facts of the matter'}</div>
       <div className="composer-buttons">
-        <button className="text-button" onClick={() => setCaseText(SAMPLE_CASE_TEXT)} disabled={busy}><Sparkles size={15} /> Try sample</button>
+        <SampleCaseMenu disabled={busy} />
         <button className="button button-primary" onClick={runAnalysis} disabled={!caseText.trim() || !appellantType || !filingDate || busy}>
           {busy ? <><LoaderCircle size={16} className="spin" /> {labels[activeStep] || 'Analyzing'}</> : <>{stale ? 'Reanalyze case' : 'Analyze case'} <ArrowRight size={16} /></>}
         </button>
