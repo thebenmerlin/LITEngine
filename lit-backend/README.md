@@ -4,6 +4,7 @@ emoji: ⚖️
 colorFrom: blue
 colorTo: indigo
 sdk: gradio
+python_version: 3.12.12
 sdk_version: 4.44.0
 app_file: app.py
 pinned: false
@@ -45,25 +46,22 @@ uvicorn main:app --reload
 
 ---
 
-## Deploy to Hugging Face Spaces (Docker)
+## Deploy to Hugging Face Spaces (Gradio on ZeroGPU)
 
-The Space repository is the contents of this `lit-backend/` directory. Its
-`Dockerfile` and this README must appear at the root of the Space repository.
-The image runs Python 3.11 as UID 1000, uses the CPU-only PyTorch wheel,
-preloads the public MiniLM fallback model, and serves FastAPI on port 7860.
-The included outcome artifact and precedent fixture index are committed to Git
-and travel with the subtree.
+The Space repository is the contents of this `lit-backend/` directory. This
+README and `app.py` must appear at its root. The Gradio entrypoint mounts the
+existing FastAPI app, including `/health`, `/docs`, and `/api/v1/...`, on port
+7860. ZeroGPU currently supports Python 3.10.13 and 3.12.12; this Space pins
+3.12.12 because its trained outcome model needs scikit-learn 1.8.0, which
+requires Python 3.11 or newer. Keep that dependency and the committed model
+artifact together when deploying.
 
-1. Create a **Docker** Space named `litengine-backend` under your Hugging Face
-   account. Choose CPU Basic hardware. Hugging Face currently requires a paid
-   account plan to *create* a compute Space, even though CPU Basic has no hourly
-   hardware charge. If this account cannot create one, this deployment target
-   is unavailable until the account is eligible.
+1. Use the existing **Gradio** Space `thebenmerlin/lit-backend` on **ZeroGPU**.
+   Free personal accounts in good standing may host up to two ZeroGPU Spaces.
 2. In the Space's **Settings → Variables and secrets**, set:
 
    | Name | Type | Value |
    |---|---|---|
-   | `PORT` | Variable | `7860` |
    | `ENV` | Variable | `production` |
    | `ALLOWED_ORIGINS` | Variable | Exact frontend origin(s), comma-separated, for example `https://litengine.example.com` |
    | `HUGGINGFACE_API_KEY` | Secret | An Inference API token, if using the hosted embedding path |
@@ -71,36 +69,12 @@ and travel with the subtree.
    `HUGGINGFACE_API_KEY` is optional if using the local MiniLM fallback. The
    GitHub deployment token `HF_TOKEN` is separate and must never be put in
    Space variables or committed to Git.
-3. After the backend changes are committed on the monorepo's `main` branch,
-   set `HF_USER` to the Space owner and run from the monorepo root:
-
-   ```bash
-   HF_USER=your-hf-username
-   git remote add hf "https://huggingface.co/spaces/${HF_USER}/litengine-backend"
-   git fetch hf main
-   git log --oneline -3 hf/main  # inspect the new Space's starter commit
-   split_sha=$(git subtree split --prefix=lit-backend HEAD)
-   git push --force-with-lease=refs/heads/main:$(git rev-parse hf/main) hf "$split_sha:refs/heads/main"
-   ```
-
-   The initial push replaces the **new, dedicated Space's starter README**
-   with the backend subtree. Use it only after reviewing `hf/main`; it does
-   not overwrite a Space with work you want to keep. Git prompts for your
-   Hugging Face username and a write-scoped access token as the password.
-   Subsequent pushes are fast-forward and need no force:
-
-   ```bash
-   git push hf "$(git subtree split --prefix=lit-backend HEAD):refs/heads/main"
-   ```
-
-4. For automatic pushes from GitHub `main`, set the repository **variable**
-   `HF_USER` to the Space owner and **secret** `HF_TOKEN` to a fine-grained
-   token with write access to only this Space. The
-   monorepo's `.github/workflows/deploy-hf-space.yml` pushes the subtree when
-   `lit-backend/` changes; it requires the initial seed above.
-5. Set the GitHub repository **variable** `HF_SPACE_URL` to the public direct
-   URL, usually `https://your-hf-username-litengine-backend.hf.space` (use the exact
-   URL shown by your Space). The
+3. Commit backend changes to the monorepo's `main` branch. The monorepo's
+   `.github/workflows/deploy-hf.yml` deploys only the `lit-backend/` subtree to
+   the Space. Set the GitHub repository **secret** `HF_TOKEN` to a fine-grained
+   token with write access to this Space.
+4. Set the GitHub repository **variable** `HF_SPACE_URL` to the public direct
+   URL, `https://thebenmerlin-lit-backend.hf.space`. The
    monorepo's `.github/workflows/keep-alive.yml` calls `/health` every six hours
    and supports a manual run from the Actions tab. It fails
    visibly if the request or JSON health check fails. Scheduled GitHub Actions
@@ -110,7 +84,7 @@ and travel with the subtree.
 Verify once the Space reports **Running**:
 
 ```bash
-HF_SPACE_URL=https://your-hf-username-litengine-backend.hf.space
+HF_SPACE_URL=https://thebenmerlin-lit-backend.hf.space
 curl --fail-with-body --show-error --max-time 30 \
   "${HF_SPACE_URL}/health"
 # Expect JSON containing "status":"healthy".
