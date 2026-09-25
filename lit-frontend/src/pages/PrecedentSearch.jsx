@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { ArrowRight, ArrowUpRight, Search } from 'lucide-react'
-import { EmptyPanel, ErrorNotice, PageHeading, percent } from '../components/workspace/Primitives'
+import { EmptyPanel, ErrorNotice, PageHeading, SampleCaseMenu, percent } from '../components/workspace/Primitives'
 import { useWorkspace } from '../workspace/WorkspaceContext'
 import { useSettings } from '../hooks/useSettings.jsx'
 
@@ -21,6 +21,7 @@ export default function PrecedentSearch() {
 
   return <div className="page-stack">
     <PageHeading eyebrow="02 / RESEARCH" title="Precedents" description="Find judgments related to the legal issues in this matter, then inspect the source material." />
+    <SampleCaseMenu />
     <form className="search-form panel" onSubmit={submit}>
       <label htmlFor="precedent-query" className="eyebrow">SEARCH THE CASE LAW</label>
       <div className="search-input-row"><Search size={21} /><textarea id="precedent-query" value={query} onChange={(event) => setQuery(event.target.value)} rows={2} placeholder="Describe the legal issue or paste a case question…" /></div>

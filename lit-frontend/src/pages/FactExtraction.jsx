@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom'
 import { ArrowRight, Download, FileText } from 'lucide-react'
-import { CaseComposer, EmptyPanel, PageHeading, SectionTitle, percent } from '../components/workspace/Primitives'
+import { EmptyPanel, PageHeading, SampleCaseMenu, SectionTitle, percent } from '../components/workspace/Primitives'
 import { useWorkspace } from '../workspace/WorkspaceContext'
 
 function downloadProfile(profile) {
@@ -17,7 +17,7 @@ export default function FactExtraction() {
   return <div className="page-stack">
     <PageHeading eyebrow="01 / CASE MATERIAL" title="Case facts" description="A structured reading of the parties, legal questions, statutory references and material facts."
       action={profile && <button className="button button-outline" onClick={() => downloadProfile(profile)}><Download size={15} /> Export profile</button>} />
-    <CaseComposer compact />
+    <SampleCaseMenu />
     {stale && <div className="notice notice-info">These facts were generated from the previous version of the case text. Reanalyze to update them.</div>}
     {status.facts === 'running' && <div className="loading-line"><span className="spin-dot" /> Extracting parties, issues and material facts…</div>}
     {!profile && status.facts !== 'running' && <EmptyPanel icon={FileText} title="The case profile will appear here" body="Analyze a case description to organize its facts and legal questions into a usable brief." />}

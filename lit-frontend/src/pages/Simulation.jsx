@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom'
 import { ArrowRight, ChartNoAxesCombined, Download } from 'lucide-react'
-import { AppellantTypeField, CaseComposer, EmptyPanel, ErrorNotice, FilingDateField, InfoNotice, PageHeading, RebuildButton, SectionTitle, percent } from '../components/workspace/Primitives'
+import { AppellantTypeField, EmptyPanel, ErrorNotice, FilingDateField, InfoNotice, PageHeading, RebuildButton, SampleCaseMenu, SectionTitle, percent } from '../components/workspace/Primitives'
 import { useWorkspace } from '../workspace/WorkspaceContext'
 
 function exportResult(simulation) {
@@ -24,7 +24,7 @@ export default function Simulation() {
       action={result && <button className="button button-outline" onClick={() => exportResult(simulation)}><Download size={15} /> Export data</button>} />
     {stale && <InfoNotice>The case text changed. Reanalyze before relying on these results.</InfoNotice>}
     <ErrorNotice message={errors.simulation} title="Outcome analysis failed" />
-    {!profile && <CaseComposer compact />}
+    <SampleCaseMenu />
     {profile && <><AppellantTypeField disabled={busy} /><FilingDateField disabled={busy} /></>}
     {!result && status.simulation !== 'running' && <EmptyPanel icon={ChartNoAxesCombined} title="A factor-by-factor assessment" body={profile ? 'The case profile is ready. Run the assessment to inspect the estimate and its contributing factors.' : 'Analyze a case to generate an outcome assessment.'} action={profile && <RebuildButton onClick={refreshSimulation} disabled={stale || busy || !appellantType || !filingDate}>Run assessment</RebuildButton>} />}
     {status.simulation === 'running' && <div className="loading-line"><span className="spin-dot" /> Weighing case factors and precedents…</div>}
