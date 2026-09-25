@@ -1,6 +1,7 @@
 import { useEffect, useId, useRef, useState } from 'react'
-import { MessageCircle, LoaderCircle, Paperclip, Plus, SendHorizontal } from 'lucide-react'
-import { CaseComposer, EmptyPanel, ErrorNotice, PageHeading } from '../components/workspace/Primitives'
+import { ChevronDown, MessageCircle, LoaderCircle, Paperclip, Plus, SendHorizontal } from 'lucide-react'
+import { EmptyPanel, ErrorNotice, PageHeading } from '../components/workspace/Primitives'
+import { SAMPLE_CASES } from '../data/sampleCases'
 import { useWorkspace } from '../workspace/WorkspaceContext'
 import { askCaseChat, uploadCaseFile } from '../lib/api'
 
@@ -17,6 +18,52 @@ function ChatBubble({ message }) {
         {message.sources.map((source) => <li key={source.index}><span className="chat-source-tag">S{source.index}</span><p>{source.text}</p></li>)}
       </ol>
     </details>}
+  </div>
+}
+
+function CaseNameSelect() {
+  const { caseText, setCaseText, setAppellantType, setFilingDate, setChatMessages } = useWorkspace()
+  const [open, setOpen] = useState(false)
+  const rootRef = useRef(null)
+
+  useEffect(() => {
+    if (!open) return undefined
+    function onPointerDown(event) {
+      if (rootRef.current && !rootRef.current.contains(event.target)) setOpen(false)
+    }
+    function onKeyDown(event) {
+      if (event.key === 'Escape') setOpen(false)
+    }
+    document.addEventListener('mousedown', onPointerDown)
+    document.addEventListener('keydown', onKeyDown)
+    return () => {
+      document.removeEventListener('mousedown', onPointerDown)
+      document.removeEventListener('keydown', onKeyDown)
+    }
+  }, [open])
+
+  const matched = SAMPLE_CASES.find((sample) => sample.text === caseText)
+  const currentLabel = matched ? matched.label : caseText.trim() ? 'Custom case' : 'Select a case'
+
+  function pick(sample) {
+    setCaseText(sample.text)
+    setAppellantType(sample.appellantType)
+    setFilingDate(sample.filingDate)
+    setChatMessages([])
+    setOpen(false)
+  }
+
+  return <div className="sample-menu case-name-select" ref={rootRef}>
+    <button type="button" className="case-name-trigger" onClick={() => setOpen((value) => !value)} aria-haspopup="menu" aria-expanded={open}>
+      <span>{currentLabel}</span> <ChevronDown size={14} />
+    </button>
+    {open && <ul className="sample-menu-list" role="menu">
+      {SAMPLE_CASES.map((sample) => (
+        <li key={sample.id} role="none">
+          <button type="button" role="menuitem" onClick={() => pick(sample)}>{sample.label}</button>
+        </li>
+      ))}
+    </ul>}
   </div>
 }
 
@@ -93,10 +140,12 @@ export default function CaseChat() {
 
   return <div className="page-stack">
     <PageHeading eyebrow="CASE MATERIAL" title="Ask the case" description="Ask follow-up questions about the loaded case. Answers are grounded only in this case's own text, with source excerpts you can check." />
-    <CaseComposer compact showHeading={false} />
-    <UploadCaseButton />
+    <div className="case-chat-controls">
+      <CaseNameSelect />
+      <UploadCaseButton />
+    </div>
 
-    {!caseText.trim() && <EmptyPanel icon={MessageCircle} title="Load a case to start asking questions" body="Paste a case description above, or upload a .txt, .docx or .pdf, then ask anything about its facts, reasoning or outcome." />}
+    {!caseText.trim() && <EmptyPanel icon={MessageCircle} title="Load a case to start asking questions" body="Pick a sample case or upload a .txt, .docx or .pdf, then ask anything about its facts, reasoning or outcome." />}
 
     {caseText.trim() && <div className="panel chat-panel">
       <div className="chat-thread" ref={threadRef}>
