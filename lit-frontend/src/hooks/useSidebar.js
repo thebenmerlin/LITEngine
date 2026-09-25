@@ -8,3 +8,5 @@ export function useSidebar() {
   }
   return ctx
 }
+
+export default useSidebar

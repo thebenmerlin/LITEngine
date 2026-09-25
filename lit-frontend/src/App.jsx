@@ -1,78 +1,38 @@
-import { useState, useEffect } from 'react'
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { BrowserRouter, Route, Routes } from 'react-router-dom'
 import { ThemeProvider } from './context/ThemeContext'
 import { SidebarProvider } from './context/SidebarContext'
 import { SettingsProvider } from './hooks/useSettings.jsx'
-import { PrecedentSearchProvider } from './context/PrecedentSearchContext'
-import { FactExtractionProvider } from './context/FactExtractionContext'
-import { ArgumentGraphProvider } from './context/ArgumentGraphContext'
-import { SimulationProvider } from './context/SimulationContext'
-import { WhatIfProvider } from './context/WhatIfContext'
+import { WorkspaceProvider } from './workspace/WorkspaceContext'
 import Layout from './components/layout/Layout'
-import OfflineBanner from './components/ui/OfflineBanner'
-import LoadingScreen from './components/ui/LoadingScreen'
 import Home from './pages/Home'
-import PrecedentSearch from './pages/PrecedentSearch'
 import FactExtraction from './pages/FactExtraction'
+import PrecedentSearch from './pages/PrecedentSearch'
 import ArgumentGraph from './pages/ArgumentGraph'
 import Simulation from './pages/Simulation'
 import WhatIf from './pages/WhatIf'
 import Settings from './pages/Settings'
-import { checkHealth } from './lib/api'
 import './styles/globals.css'
 
-function AppRoutes() {
-  return (
-    <>
-      <OfflineBanner />
-      <BrowserRouter>
-        <Routes>
-          <Route element={<Layout />}>
-            <Route path="/" element={<Home />} />
-            <Route path="/precedent-search" element={<PrecedentSearch />} />
-            <Route path="/fact-extraction" element={<FactExtraction />} />
-            <Route path="/argument-graph" element={<ArgumentGraph />} />
-            <Route path="/simulation" element={<Simulation />} />
-            <Route path="/what-if" element={<WhatIf />} />
-            <Route path="/settings" element={<Settings />} />
-          </Route>
-        </Routes>
-      </BrowserRouter>
-    </>
-  )
-}
-
 export default function App() {
-  const [ready, setReady] = useState(false)
-
-  useEffect(() => {
-    let cancelled = false
-    checkHealth()
-      .catch(() => {
-        // Health check failed — app still loads, OfflineBanner will show
-      })
-      .finally(() => {
-        if (!cancelled) setReady(true)
-      })
-    return () => { cancelled = true }
-  }, [])
-
   return (
     <ThemeProvider>
       <SidebarProvider>
         <SettingsProvider>
-          <PrecedentSearchProvider>
-            <FactExtractionProvider>
-              <ArgumentGraphProvider>
-                <SimulationProvider>
-                  <WhatIfProvider>
-                    {!ready && <LoadingScreen onDone={() => setReady(true)} />}
-                    <AppRoutes />
-                  </WhatIfProvider>
-                </SimulationProvider>
-              </ArgumentGraphProvider>
-            </FactExtractionProvider>
-          </PrecedentSearchProvider>
+          <WorkspaceProvider>
+            <BrowserRouter>
+              <Routes>
+                <Route element={<Layout />}>
+                  <Route path="/" element={<Home />} />
+                  <Route path="/fact-extraction" element={<FactExtraction />} />
+                  <Route path="/precedent-search" element={<PrecedentSearch />} />
+                  <Route path="/argument-graph" element={<ArgumentGraph />} />
+                  <Route path="/simulation" element={<Simulation />} />
+                  <Route path="/what-if" element={<WhatIf />} />
+                  <Route path="/settings" element={<Settings />} />
+                </Route>
+              </Routes>
+            </BrowserRouter>
+          </WorkspaceProvider>
         </SettingsProvider>
       </SidebarProvider>
     </ThemeProvider>

@@ -1,198 +1,48 @@
-import { Search as SearchIcon } from 'lucide-react'
-import { usePrecedentSearch } from '../hooks/usePrecedentSearch'
-import Button from '../components/ui/Button'
-import SampleButton from '../components/ui/SampleButton'
-import EmptyState from '../components/ui/EmptyState'
-import ErrorBanner from '../components/ui/ErrorBanner'
-import Spinner from '../components/ui/Spinner'
-import PrecedentCard from '../components/PrecedentCard'
-import { SAMPLE_PRECEDENT_QUERY } from '../data/sampleCases'
-
-/* ------------------------------------------------------------------ */
-/*  Skeleton card — animated pulse placeholder                        */
-/* ------------------------------------------------------------------ */
-
-function SkeletonCard() {
-  return (
-    <div className="rounded-lg border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-surface-dark">
-      {/* Title skeleton */}
-      <div className="h-5 w-3/4 animate-pulse rounded-md bg-gray-200 dark:bg-gray-700" />
-      {/* Meta skeleton */}
-      <div className="mt-2 h-4 w-1/2 animate-pulse rounded-md bg-gray-100 dark:bg-gray-800" />
-      {/* Snippet skeleton — 2 lines */}
-      <div className="mt-4 h-4 animate-pulse rounded-md bg-gray-100 dark:bg-gray-800" />
-      <div className="mt-2 h-4 w-5/6 animate-pulse rounded-md bg-gray-100 dark:bg-gray-800" />
-    </div>
-  )
-}
-
-/* ------------------------------------------------------------------ */
-/*  PrecedentSearch page                                              */
-/* ------------------------------------------------------------------ */
-
-const TOP_K_OPTIONS = [3, 5, 10]
+import { useEffect, useState } from 'react'
+import { ArrowRight, ArrowUpRight, Search } from 'lucide-react'
+import { EmptyPanel, ErrorNotice, PageHeading, percent } from '../components/workspace/Primitives'
+import { useWorkspace } from '../workspace/WorkspaceContext'
+import { useSettings } from '../hooks/useSettings.jsx'
 
 export default function PrecedentSearch() {
-  const {
-    query,
-    setQuery,
-    topK,
-    setTopK,
-    useKanoon,
-    setUseKanoon,
-    statsData,
-    results,
-    searching,
-    searchError,
-    handleSearch,
-  } = usePrecedentSearch()
+  const { settings } = useSettings()
+  const { query, setQuery, search, precedents, status, errors, profile, busy } = useWorkspace()
+  const [topK, setTopK] = useState(settings.defaultResultCount)
+  const [useKanoon, setUseKanoon] = useState(settings.includeKanoon)
+  const [selectedId, setSelectedId] = useState(null)
+  const selected = precedents?.find((item) => item.doc_id === selectedId) || precedents?.[0]
 
-  const hasSearched = results !== null || searchError !== null
+  useEffect(() => { setSelectedId(null) }, [precedents])
 
-  return (
-    <div>
-      {/* ---- Header ---- */}
-      <div className="mb-8 flex items-start justify-between">
-        <div className="flex items-center gap-3">
-          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-navy-500 to-navy-700 shadow-sm">
-            <SearchIcon className="h-5 w-5 text-white" />
-          </span>
-          <div>
-            <h2 className="text-2xl font-semibold tracking-tight text-gray-900 dark:text-gray-100">
-              Precedent Search
-            </h2>
-            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-              Find semantically similar Indian court judgments
-            </p>
-          </div>
-        </div>
+  const submit = (event) => {
+    event.preventDefault()
+    search({ searchQuery: query, topK, useKanoon })
+  }
 
-        {/* Index stats — top right */}
-        <div className="shrink-0 text-right text-xs text-gray-400 dark:text-gray-500">
-          {statsData && statsData.total_documents > 0 ? (
-            <span>
-              Index:{' '}
-              <span className="font-medium text-gray-600 dark:text-gray-300">
-                {statsData.total_documents} documents
-              </span>
-            </span>
-          ) : (
-            <span>
-              Index empty — results from live Kanoon only
-            </span>
-          )}
-        </div>
+  return <div className="page-stack">
+    <PageHeading eyebrow="02 / RESEARCH" title="Precedents" description="Find judgments related to the legal issues in this matter, then inspect the source material." />
+    <form className="search-form panel" onSubmit={submit}>
+      <label htmlFor="precedent-query" className="eyebrow">SEARCH THE CASE LAW</label>
+      <div className="search-input-row"><Search size={21} /><textarea id="precedent-query" value={query} onChange={(event) => setQuery(event.target.value)} rows={2} placeholder="Describe the legal issue or paste a case question…" /></div>
+      <div className="search-form-footer">
+        <div className="search-options"><label>Results <select value={topK} onChange={(event) => setTopK(Number(event.target.value))}><option value={3}>3</option><option value={5}>5</option><option value={10}>10</option></select></label><label className="checkbox-line"><input type="checkbox" checked={useKanoon} onChange={(event) => setUseKanoon(event.target.checked)} /> Include live Kanoon results</label></div>
+        <button className="button button-primary" disabled={!query.trim() || busy}>{status.precedents === 'running' ? 'Searching…' : 'Search precedents'} <ArrowRight size={16} /></button>
       </div>
-
-      {/* ---- Search Form ---- */}
-      <form onSubmit={handleSearch}>
-        <textarea
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          rows={5}
-          placeholder="Describe the facts of your case. The system will find similar judgments from the Supreme Court and High Courts."
-          className="block w-full resize-y rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm leading-relaxed text-gray-900 placeholder:text-gray-400 focus:border-navy-700 focus:outline-none focus:ring-1 focus:ring-navy-700 dark:border-gray-700 dark:bg-surface-dark dark:text-gray-100 dark:placeholder:text-gray-500 dark:focus:border-navy-500 dark:focus:ring-navy-500"
-          style={{ minHeight: 140 }}
-        />
-
-        {/* Controls row */}
-        <div className="mt-4 flex flex-wrap items-center gap-x-6 gap-y-3">
-          {/* Top K selector */}
-          <label className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
-            Top results
-            <select
-              value={topK}
-              onChange={(e) => setTopK(Number(e.target.value))}
-              className="rounded-md border border-gray-300 bg-white px-2 py-1.5 text-sm focus:border-navy-700 focus:outline-none focus:ring-1 focus:ring-navy-700 dark:border-gray-700 dark:bg-surface-dark dark:text-gray-100"
-            >
-              {TOP_K_OPTIONS.map((n) => (
-                <option key={n} value={n}>
-                  {n}
-                </option>
-              ))}
-            </select>
-          </label>
-
-          {/* Kanoon toggle */}
-          <label className="flex cursor-pointer items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
-            <input
-              type="checkbox"
-              checked={useKanoon}
-              onChange={(e) => setUseKanoon(e.target.checked)}
-              className="h-4 w-4 rounded border-gray-300 text-navy-700 focus:ring-navy-700 dark:border-gray-600 dark:bg-surface-dark"
-            />
-            Include live Kanoon results
-          </label>
-
-          {/* Sample + Search buttons — pushed right */}
-          <div className="ml-auto flex items-center gap-2">
-            <SampleButton onClick={() => setQuery(SAMPLE_PRECEDENT_QUERY)} />
-            <Button
-              type="submit"
-              variant="primary"
-              size="md"
-              disabled={searching || !query.trim()}
-              className="gap-2"
-            >
-              {searching ? (
-                <>
-                  <Spinner size="sm" />
-                  Searching…
-                </>
-              ) : (
-                <>
-                  <SearchIcon className="h-4 w-4" />
-                  Search
-                </>
-              )}
-            </Button>
-          </div>
-        </div>
-      </form>
-
-      {/* ---- Results ---- */}
-      <div className="mt-8">
-        {/* Loading skeletons */}
-        {searching && (
-          <div className="space-y-4">
-            <SkeletonCard />
-            <SkeletonCard />
-            <SkeletonCard />
-          </div>
-        )}
-
-        {/* Error */}
-        {searchError && (
-          <ErrorBanner message={searchError.detail || searchError.message} />
-        )}
-
-        {/* Empty — user searched but got zero results */}
-        {!searching && hasSearched && !searchError && (!results || results.total === 0) && (
-          <EmptyState
-            title="No precedents found"
-            message="Try rephrasing your case description or include live Kanoon results for broader coverage."
-            icon={SearchIcon}
-          />
-        )}
-
-        {/* Results list */}
-        {!searching && results && results.total > 0 && (
-          <div>
-            <p className="mb-4 text-sm text-gray-500 dark:text-gray-400">
-              {results.total} result{results.total !== 1 ? 's' : ''} for &ldquo;
-              <span className="font-medium text-gray-700 dark:text-gray-300">
-                {results.query}
-              </span>
-              &rdquo;
-            </p>
-            <div className="space-y-4">
-              {results.results.map((r) => (
-                <PrecedentCard key={r.doc_id || r.url} result={r} />
-              ))}
-            </div>
-          </div>
-        )}
-      </div>
-    </div>
-  )
+    </form>
+    {profile && <p className="context-note">Search can use the legal questions extracted from the active case. A new search updates the case’s precedent set; refresh the map and outcome afterward.</p>}
+    <ErrorNotice message={errors.precedents} title="Precedent search failed" />
+    {status.precedents === 'running' && <div className="loading-line"><span className="spin-dot" /> Searching the index and live source…</div>}
+    {precedents && status.precedents !== 'running' && <>
+      <div className="results-header"><span className="eyebrow">SEARCH RESULTS</span><strong>{precedents.length} judgments</strong></div>
+      {precedents.length ? <div className="precedent-layout">
+        <div className="precedent-list">{precedents.map((result, index) => <button key={result.doc_id || index} className={`precedent-row ${selected?.doc_id === result.doc_id ? 'selected' : ''}`} onClick={() => setSelectedId(result.doc_id)}>
+          <span className="result-index">{String(index + 1).padStart(2, '0')}</span>
+          <span className="result-main"><strong>{result.title}</strong><small>{[result.court, result.date].filter(Boolean).join(' · ') || 'Court and date unavailable'}</small></span>
+          <span className="result-score">{percent(result.similarity_score)}</span>
+        </button>)}</div>
+        {selected && <aside className="precedent-inspector panel"><span className="eyebrow">JUDGMENT / {selected.source?.toUpperCase() || 'SOURCE'}</span><h2>{selected.title}</h2><div className="inspector-meta"><span>{selected.court || 'Court unavailable'}</span><span>{selected.date || 'Date unavailable'}</span></div><p>{selected.snippet || 'No excerpt is available for this judgment.'}</p><div className="inspector-score"><span>Semantic match</span><strong>{percent(selected.similarity_score)}</strong><span className="score-track"><i style={{ width: `${Math.round((selected.similarity_score || 0) * 100)}%` }} /></span></div><a className="button button-outline" href={selected.url || `https://indiankanoon.org/doc/${selected.doc_id}/`} target="_blank" rel="noreferrer">Open judgment <ArrowUpRight size={16} /></a></aside>}
+      </div> : <EmptyPanel icon={Search} title="No judgments found" body="Try a broader legal question or enable live Kanoon results." />}
+    </>}
+    {!precedents && status.precedents !== 'running' && <EmptyPanel icon={Search} title="Find the closest authorities" body="Search a question from your case or enter another legal issue to inspect relevant judgments." />}
+  </div>
 }

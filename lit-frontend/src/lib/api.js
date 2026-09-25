@@ -2,9 +2,18 @@
 /*  LIT API Client — fetch-based, zero extra dependencies                     */
 /* -------------------------------------------------------------------------- */
 
-const BASE_URL =
+const DEFAULT_BASE_URL =
   (import.meta.env && import.meta.env.VITE_API_BASE_URL) ||
   'http://localhost:8000/api/v1'
+
+function baseUrl() {
+  try {
+    const configured = JSON.parse(localStorage.getItem('lit-settings') || '{}').apiBaseUrl?.trim()
+    return configured ? configured.replace(/\/$/, '') : DEFAULT_BASE_URL
+  } catch {
+    return DEFAULT_BASE_URL
+  }
+}
 
 const DEFAULT_TIMEOUT_MS = 30_000
 
@@ -40,7 +49,7 @@ export class ApiError extends Error {
  * @returns {Promise<unknown>}  – Parsed JSON response
  */
 export async function request(path, options = {}) {
-  const url = path.startsWith('http') ? path : `${BASE_URL}${path}`
+  const url = path.startsWith('http') ? path : `${baseUrl()}${path}`
 
   const controller = new AbortController()
   const timeoutId = setTimeout(() => controller.abort(), DEFAULT_TIMEOUT_MS)
@@ -195,6 +204,6 @@ export async function runSimulation({ caseProfile, precedents = [], graphStats =
  * @returns {Promise<{ app: string, version: string, status: string }>}
  */
 export async function checkHealth() {
-  const rootUrl = BASE_URL.replace(/\/api\/v1$/, '')
+  const rootUrl = baseUrl().replace(/\/api\/v1$/, '')
   return request(`${rootUrl}/health`)
 }

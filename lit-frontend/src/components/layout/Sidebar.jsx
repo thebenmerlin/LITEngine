@@ -1,144 +1,124 @@
-import { useState } from 'react'
-import { Link, NavLink } from 'react-router-dom'
+import { NavLink } from 'react-router-dom'
 import {
-  Scale,
-  Search,
-  FileSearch,
+  ArrowUpRight,
+  ChartNoAxesCombined,
+  FileText,
   GitBranch,
-  Brain,
-  Settings,
-  FlaskConical,
+  LayoutDashboard,
   PanelLeftClose,
   PanelLeftOpen,
+  Search,
+  Settings2,
+  SlidersHorizontal,
+  X,
 } from 'lucide-react'
+import { useWorkspace } from '../../workspace/WorkspaceContext'
 import { useSidebar } from '../../hooks/useSidebar'
 
-const NAV_ITEMS = [
-  { to: '/', label: 'Home', icon: Scale },
-  { to: '/precedent-search', label: 'Precedent Search', icon: Search },
-  { to: '/fact-extraction', label: 'Fact Extraction', icon: FileSearch },
-  { to: '/argument-graph', label: 'Argument Graph', icon: GitBranch },
-  { to: '/simulation', label: 'Simulation', icon: Brain },
-  { to: '/what-if', label: 'What-If Analyzer', icon: FlaskConical },
-  { to: '/settings', label: 'Settings', icon: Settings },
+const links = [
+  { to: '/', label: 'Overview', icon: LayoutDashboard },
+  { to: '/fact-extraction', label: 'Case facts', icon: FileText },
+  { to: '/precedent-search', label: 'Precedents', icon: Search },
+  { to: '/argument-graph', label: 'Argument map', icon: GitBranch },
+  { to: '/simulation', label: 'Outcome analysis', icon: ChartNoAxesCombined },
+  { to: '/what-if', label: 'Scenarios', icon: SlidersHorizontal },
 ]
 
-/* ------------------------------------------------------------------ */
-/*  Logo — animated wordmark, always links home                       */
-/* ------------------------------------------------------------------ */
+export default function Sidebar({ open, onClose, pathname }) {
+  const { profile, caseText, graph, precedents, simulation } = useWorkspace()
+  const { collapsed, toggle } = useSidebar()
 
-function Logo() {
-  return (
-    <Link
-      to="/"
-      className="group flex items-center gap-3 outline-none"
-      aria-label="LIT — go to home"
-    >
-      <span className="relative flex h-9 w-9 shrink-0 items-center justify-center">
-        <span className="absolute inset-0 rounded-lg bg-navy-700 opacity-40 blur-[6px] transition-opacity duration-300 group-hover:opacity-70 dark:bg-navy-400" />
-        <span className="absolute inset-0 rounded-lg bg-navy-700/50 dark:bg-navy-400/50 animate-ping-slow" />
-        <span className="relative flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-navy-600 to-navy-800 shadow-sm transition-transform duration-300 ease-out group-hover:-rotate-6 group-hover:scale-110 dark:from-navy-500 dark:to-navy-700">
-          <Scale className="h-[18px] w-[18px] text-white" strokeWidth={2.25} />
-        </span>
-      </span>
-      <span className="flex flex-col leading-none">
-        <span className="text-[15px] font-semibold tracking-tight text-navy-700 dark:text-gray-100">
-          LIT
-        </span>
-        <span className="mt-0.5 text-[10px] font-medium uppercase tracking-wider text-gray-400 dark:text-gray-500">
-          Legal Intelligence
-        </span>
-      </span>
-    </Link>
-  )
-}
+  const caseName = profile?.parties?.petitioner && profile?.parties?.respondent
+    ? `${profile.parties.petitioner} v. ${profile.parties.respondent}`
+    : caseText.trim() ? 'Untitled case' : 'No active case'
+  const completed = [profile, precedents, graph, simulation].filter(Boolean).length
 
-/* ------------------------------------------------------------------ */
-/*  Full nav panel — shared by the pinned-open and peek states         */
-/* ------------------------------------------------------------------ */
-
-function SidebarPanel({ collapsed, onToggle }) {
   return (
     <>
-      {/* Header — logo + pin/collapse toggle live together at the TOP */}
-      <div className="flex h-16 shrink-0 items-center justify-between border-b border-gray-200 px-4 dark:border-gray-800">
-        <Logo />
-        <button
-          onClick={onToggle}
-          className="rounded-md p-1.5 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600 dark:text-gray-500 dark:hover:bg-gray-800 dark:hover:text-gray-300"
-          aria-label={collapsed ? 'Pin sidebar open' : 'Collapse sidebar'}
-          title={collapsed ? 'Pin sidebar open' : 'Collapse sidebar'}
-        >
-          {collapsed ? (
-            <PanelLeftOpen className="h-[18px] w-[18px]" />
-          ) : (
-            <PanelLeftClose className="h-[18px] w-[18px]" />
-          )}
-        </button>
-      </div>
-
-      {/* Navigation */}
-      <nav className="flex-1 space-y-0.5 overflow-y-auto px-3 py-4">
-        {NAV_ITEMS.map(({ to, label, icon: Icon }) => (
-          <NavLink
-            key={to}
-            to={to}
-            end={to === '/'}
-            className={({ isActive }) =>
-              `flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors duration-150 ${
-                isActive
-                  ? 'border-l-[3px] border-navy-700 bg-navy-700/5 text-navy-700 dark:border-navy-400 dark:bg-navy-700/20 dark:text-navy-200'
-                  : 'border-l-[3px] border-transparent text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-200'
-              }`
-            }
-          >
-            <Icon className="h-[18px] w-[18px] shrink-0" />
-            <span className="whitespace-nowrap">{label}</span>
+      {open && <button className="sidebar-backdrop" onClick={onClose} aria-label="Close navigation" />}
+      <aside className={`sidebar ${open ? 'is-open' : ''} ${collapsed ? 'is-collapsed' : ''}`}>
+        <div className="sidebar-top">
+          <NavLink to="/" className="brand" onClick={onClose} aria-label="LIT overview" title="LIT Legal Intelligence">
+            <span className="brand-mark">L<span>.</span></span>
+            <span className="brand-copy"><strong>LIT</strong><small>LEGAL INTELLIGENCE</small></span>
           </NavLink>
-        ))}
-      </nav>
+          <button
+            type="button"
+            className="collapse-toggle icon-button"
+            onClick={toggle}
+            title={collapsed ? 'Expand sidebar (Ctrl+B)' : 'Collapse sidebar (Ctrl+B)'}
+            aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+          >
+            {collapsed ? <PanelLeftOpen size={18} /> : <PanelLeftClose size={18} />}
+          </button>
+          <button className="mobile-close icon-button" onClick={onClose} aria-label="Close navigation">
+            <X size={18} />
+          </button>
+        </div>
 
-      <div className="border-t border-gray-200 px-6 py-3 dark:border-gray-800">
-        <p className="text-[11px] text-gray-400 dark:text-gray-600">
-          v0.1.0 &middot; Indian Legal AI
-        </p>
-      </div>
-    </>
-  )
-}
+        <div
+          className="sidebar-case"
+          title={`${caseName} • ${completed ? `${completed} of 4 stages ready` : 'No active case'}`}
+        >
+          <div className="sidebar-case-expanded">
+            <span className="sidebar-eyebrow">ACTIVE MATTER</span>
+            <strong title={caseName}>{caseName}</strong>
+            <div className="sidebar-progress"><span style={{ width: `${completed * 25}%` }} /></div>
+            <small>{completed ? `${completed} of 4 analysis stages ready` : 'Start with a case description'}</small>
+          </div>
+          <div className="sidebar-case-mini">
+            <div className="sidebar-case-mini-badge">
+              <span className="sidebar-case-mini-dot" style={{ backgroundColor: completed > 0 ? '#d89172' : '#52625c' }} />
+              <span className="sidebar-case-mini-count">{completed}/4</span>
+            </div>
+            <div className="sidebar-progress"><span style={{ width: `${completed * 25}%` }} /></div>
+          </div>
+        </div>
 
-export default function Sidebar() {
-  const { collapsed, toggle } = useSidebar()
-  const [peeking, setPeeking] = useState(false)
+        <nav className="sidebar-nav" aria-label="Primary navigation">
+          <span className="sidebar-eyebrow">WORKSPACE</span>
+          {links.map(({ to, label, icon: Icon }) => (
+            <NavLink
+              key={to}
+              to={to}
+              end={to === '/'}
+              onClick={onClose}
+              title={label}
+              aria-label={label}
+              className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
+            >
+              <Icon size={17} strokeWidth={1.8} />
+              <span className="nav-label">{label}</span>
+              {pathname === to && <span className="nav-active-dot" />}
+            </NavLink>
+          ))}
+        </nav>
 
-  /* ---- Pinned open — normal, in-flow sidebar ---------------------- */
-  if (!collapsed) {
-    return (
-      <aside className="fixed inset-y-0 left-0 z-30 flex w-60 flex-col border-r border-gray-200 bg-[#F9FAFB] dark:border-gray-800 dark:bg-[#161B27]">
-        <SidebarPanel collapsed={false} onToggle={toggle} />
+        <div className="sidebar-bottom">
+          <NavLink
+            to="/settings"
+            className="nav-link"
+            onClick={onClose}
+            title="Settings"
+            aria-label="Settings"
+          >
+            <Settings2 size={17} />
+            <span className="nav-label">Settings</span>
+          </NavLink>
+          <a
+            href="https://indiankanoon.org/"
+            target="_blank"
+            rel="noreferrer"
+            className="sidebar-source"
+            title="Indian Kanoon (External database)"
+            aria-label="Indian Kanoon"
+          >
+            <span className="source-label">Indian Kanoon</span>
+            <ArrowUpRight size={14} />
+          </a>
+          <span className="sidebar-version">LIT / RESEARCH WORKSPACE · V0.2</span>
+        </div>
       </aside>
-    )
-  }
-
-  /* ---- Collapsed — sidebar is gone; a thin edge zone reveals a      */
-  /* Notion-style peek overlay on hover, without touching page layout. */
-  return (
-    <div
-      onMouseEnter={() => setPeeking(true)}
-      onMouseLeave={() => setPeeking(false)}
-      className="fixed inset-y-0 left-0 z-40"
-    >
-      {/* Slim always-present edge strip — hover target + visual hint */}
-      <div className="group flex h-full w-3 items-center justify-center border-r border-transparent bg-transparent">
-        <span className="h-10 w-[3px] rounded-full bg-gray-300/70 transition-colors group-hover:bg-navy-700/50 dark:bg-gray-700/70 dark:group-hover:bg-navy-400/50" />
-      </div>
-
-      {/* Peek overlay — full sidebar, floats above content, doesn't reflow it */}
-      {peeking && (
-        <aside className="absolute inset-y-0 left-0 flex w-60 animate-fade-in-up flex-col border-r border-gray-200 bg-[#F9FAFB] shadow-2xl dark:border-gray-800 dark:bg-[#161B27]">
-          <SidebarPanel collapsed onToggle={toggle} />
-        </aside>
-      )}
-    </div>
+    </>
   )
 }
