@@ -1,11 +1,22 @@
 """
 LITEngine Hugging Face Space Entrypoint.
-Mounts the production FastAPI application inside Gradio to run on Hugging Face Spaces
-using the 100% Free Gradio CPU Basic hardware (2 vCPU · 16 GB RAM).
+Mounts the production FastAPI application inside Gradio on ZeroGPU hardware.
 """
 
 import gradio as gr
 from main import app as fastapi_app
+
+try:
+    import spaces  # Installed by the ZeroGPU Space runtime.
+except ImportError:
+    spaces = None
+
+
+if spaces is not None:
+    @spaces.GPU(duration=1)
+    def _zerogpu_startup_probe():
+        """Register a GPU callback for ZeroGPU startup; never used by the API."""
+        return None
 
 # Create an informative status dashboard for visitors accessing the Space root directly
 with gr.Blocks(title="LITEngine Legal Intelligence Engine") as demo:
@@ -13,7 +24,7 @@ with gr.Blocks(title="LITEngine Legal Intelligence Engine") as demo:
     gr.Markdown(
         """
         ### System Status: **ONLINE** 🟢
-        The LITEngine legal intelligence backend is running with **16 GB RAM**.
+        The REST API runs on CPU in this ZeroGPU Space.
         
         - **Interactive API Documentation:** [`/docs`](/docs)
         - **Readiness Probe:** [`/api/v1/health/ready`](/api/v1/health/ready)
@@ -30,6 +41,12 @@ with gr.Blocks(title="LITEngine Legal Intelligence Engine") as demo:
         return "FastAPI Engine is alive and responding!"
 
     test_btn.click(test_health, outputs=test_out)
+
+    # ZeroGPU requires a registered GPU event even though the backend uses CPU.
+    # This hidden event is never invoked by normal visitors or REST requests.
+    if spaces is not None:
+        probe_btn = gr.Button(visible=False)
+        probe_btn.click(_zerogpu_startup_probe, api_name=False)
 
 # Mount Gradio interface onto FastAPI at root path
 # FastAPI routes (/health, /docs, /api/v1/...) take precedence in route resolution
