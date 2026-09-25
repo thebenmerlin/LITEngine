@@ -1,9 +1,12 @@
 import tempfile
 import unittest
+import csv
+import json
 from datetime import date
 from pathlib import Path
 
 from scripts.outcome_dataset.predecision_data import FilingCase, freeze_split, load_manifest
+from scripts.outcome_dataset.prepare_precedent_corpus import stage
 from services.precedent_filter import decision_before
 
 
@@ -49,6 +52,30 @@ class PredecisionIntakeTests(unittest.TestCase):
         self.assertFalse(decision_before("2020-06-02", cutoff))
         self.assertFalse(decision_before(None, cutoff))
         self.assertFalse(decision_before("not-a-date", cutoff))
+
+    def test_cached_judgments_stage_only_dated_unique_precedents(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            cache = root / "cache"
+            cache.mkdir()
+            text = "The appellate court considered the record and arguments. " * 20
+            for doc_id, date_value in (("1", "2020-01-01"), ("2", "2020-01-01"), ("3", None)):
+                (cache / f"{doc_id}.json").write_text(json.dumps({
+                    "doc_id": doc_id, "date": date_value, "title": f"Case {doc_id}",
+                    "court": "Supreme Court of India", "text": text,
+                    "url": f"https://indiankanoon.org/doc/{doc_id}/",
+                }), encoding="utf-8")
+            output = root / "precedents"
+            summary = stage(cache, output)
+            self.assertEqual(summary["valid_dated"], 2)
+            self.assertEqual(summary["indexed_judgments"], 1)
+            self.assertEqual(summary["near_duplicate_rows_removed"], 1)
+            with (output / "precedents.csv").open(newline="", encoding="utf-8") as handle:
+                row = next(csv.DictReader(handle))
+            self.assertEqual(row["doc_id"], "1")
+            self.assertEqual(row["decision_date"], "2020-01-01")
+            with self.assertRaisesRegex(ValueError, "not empty"):
+                stage(cache, output)
 
 
 if __name__ == "__main__":

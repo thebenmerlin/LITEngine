@@ -7,6 +7,7 @@ Every row must identify a published judgment and its decision date.
 import argparse
 import asyncio
 import csv
+import hashlib
 from datetime import date
 from pathlib import Path
 
@@ -40,7 +41,11 @@ async def build(manifest: Path, output: Path):
             text_path = (manifest.parent / row["text_path"].strip()).resolve()
             if not text_path.is_relative_to(manifest.parent) or not text_path.is_file():
                 raise ValueError(f"Invalid text_path for {doc_id}")
-            chunks = _chunk_text(text_path.read_text(encoding="utf-8"))
+            text_bytes = text_path.read_bytes()
+            expected_hash = row.get("text_sha256", "").strip()
+            if expected_hash and hashlib.sha256(text_bytes).hexdigest() != expected_hash:
+                raise ValueError(f"Text changed after manifest staging for {doc_id}")
+            chunks = _chunk_text(text_bytes.decode("utf-8"))
             if not chunks:
                 raise ValueError(f"Empty precedent text for {doc_id}")
             vectors = np.asarray(await embedder.embed_texts(chunks), dtype=np.float32)

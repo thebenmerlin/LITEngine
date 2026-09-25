@@ -292,7 +292,17 @@ class EmbedderService:
         )
 
     async def embed_texts(self, texts: List[str]) -> List[List[float]]:
-        """Embed multiple texts sequentially (HF free tier has batch limits)."""
+        """Batch local inference; keep API calls sequential for free-tier limits."""
+        if not texts:
+            return []
+        if not self._use_hf_api:
+            model = self._get_local_model()
+            vectors = await asyncio.to_thread(
+                model.encode, texts, batch_size=32,
+                normalize_embeddings=True, show_progress_bar=False,
+            )
+            logger.info(f"Embedded {len(texts)} texts with local SentenceTransformer")
+            return vectors.tolist()
         embeddings: List[List[float]] = []
         for text in texts:
             emb = await self._get_embedding(text)

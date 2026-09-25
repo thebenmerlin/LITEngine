@@ -13,7 +13,16 @@ case-001,matter-001,filings/case-001.txt,2020-01-15,2022-06-01,High Court,accuse
 
 `matter_id` groups related appeals so they cannot cross the train/holdout split. Dates use `YYYY-MM-DD`. `outcome` is `dismissed` or `succeeds` (full or partial relief). `appellant_type` is `accused_appeal`, `state_appeal`, or `unclear`. The intake process sets `input_verified` only after checking source provenance and that the text predates the decision; it sets `outcome_verified` only after cross-checking the final order. These checks can be automated from authoritative records, with a manual audit of ambiguous cases and a sampled training/holdout batch. The importer flags obvious disposal phrases for a further audit in `feature_metadata.json`; that check cannot prove absence of leakage.
 
-Build a separate precedent manifest with `doc_id,matter_id,title,text_path,decision_date,court,url`. Each text file contains a published judgment. The index builder stores dates and matter IDs, enabling strict `decision_date < filing_date` filtering and related-matter exclusion.
+Build a separate precedent manifest with `doc_id,matter_id,title,text_path,decision_date,court,url`. Each text file contains a published judgment. The index builder stores dates and matter IDs, enabling strict `decision_date < filing_date` filtering and related-matter exclusion. The cached Indian Kanoon judgments may be used for this **precedent corpus only**. They are never acceptable as the pre-decision case inputs. A filing that corresponds to a cached judgment must use a matching `matter_id` (or have the relationship reviewed and mapped) so that its own judgment and companion matters are excluded.
+
+The cached corpus can be staged locally with:
+
+```bash
+./venv/bin/python -m scripts.outcome_dataset.prepare_precedent_corpus --output-dir data/outcome_dataset/predecision/precedents/v1
+./venv/bin/python -m scripts.outcome_dataset.build_precedent_index --manifest data/outcome_dataset/predecision/precedents/v1/precedents.csv --output data/outcome_dataset/predecision/precedents/v1/dated_index.json
+```
+
+The staging command rejects undated or incomplete documents, collapses near-duplicate judgments, and records source hashes. `matter_id` defaults to the surviving Indian Kanoon document ID; related appeals under different IDs still need a case-level linkage audit. The dated index remains local until a candidate passes the frozen holdout gate and the identical index is configured in serving.
 
 ## Commands
 
@@ -29,4 +38,4 @@ From `lit-backend/`:
 
 The build command uses the same extraction service as the app; pass `--rules-only` only when evaluating a rules-only browser configuration. The builder refuses mixed extraction methods and writes `review_queue.csv` with 25 training cases, 25 holdout cases, and every obvious outcome-cue flag. Review each queued filing and outcome, then set `reviewed=yes` and `issue_found=no`. Resolve any issue in a new dataset version. Training refuses an unsigned audit. Keep the exact dated precedent index used for evaluation in serving. The evaluation command refuses to score a holdout twice; a failed promotion requires new cases and a new dataset version.
 
-The final command prints environment variables for a gated artifact only when the holdout gate passes and the serving index hash matches. It does not deploy or change the active model. When `PRECEDENT_INDEX_PATH` is set, the live index is frozen: the indexing endpoint is disabled and shutdown does not rewrite it. The existing `OUTCOME_MODEL_PRIMARY` setting and heuristic fallback remain available. With no staged filings, no candidate artifact or holdout score can be produced.
+The final command prints environment variables for a gated artifact only when the holdout gate passes and the serving index hash matches. It does not deploy or change the active model. When `PRECEDENT_INDEX_PATH` is set, the live index is frozen: the indexing endpoint is disabled and shutdown does not rewrite it. The existing `OUTCOME_MODEL_PRIMARY` setting and heuristic fallback remain available. A precedent index alone does not supply training examples: without at least 300 verified, independent pre-decision filings and outcomes, no candidate artifact or holdout score can be produced.
