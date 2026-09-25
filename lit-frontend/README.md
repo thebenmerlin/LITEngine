@@ -31,7 +31,7 @@ npm run build
 
 ## Configuration and deployment
 
-Set `VITE_API_BASE_URL` to the backend's `/api/v1` endpoint. The included `.env.development` and `.env.production` provide defaults; override the production value in your deployment environment. `vercel.json` provides SPA route rewrites.
+The production default is `https://thebenmerlin-lit-backend.hf.space/api/v1`; local development still uses `http://localhost:8000/api/v1`. `VITE_PUBLIC_API_BASE_URL` takes precedence over the older `VITE_API_BASE_URL` during the Vite build, so the tracked production value wins over a stale Vercel setting. Set `VITE_PUBLIC_API_BASE_URL` in the deployment environment to point at another backend. Clear any old custom URL in Settings to use the deployed default. `vercel.json` provides SPA route rewrites.
 
 ## Structure
 

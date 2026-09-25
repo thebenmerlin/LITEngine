@@ -3,6 +3,7 @@
 /* -------------------------------------------------------------------------- */
 
 const DEFAULT_BASE_URL =
+  (import.meta.env && import.meta.env.VITE_PUBLIC_API_BASE_URL) ||
   (import.meta.env && import.meta.env.VITE_API_BASE_URL) ||
   'http://localhost:8000/api/v1'
 
@@ -55,7 +56,8 @@ export async function request(path, options = {}) {
   const timeoutId = setTimeout(() => controller.abort(), DEFAULT_TIMEOUT_MS)
 
   const defaults = {
-    headers: { 'Content-Type': 'application/json' },
+    // A JSON header on GET requests forces an unnecessary CORS preflight.
+    headers: options.body === undefined ? {} : { 'Content-Type': 'application/json' },
     signal: controller.signal,
   }
 
