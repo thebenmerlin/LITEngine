@@ -1,6 +1,6 @@
 from pydantic import BaseModel, Field
 from typing import Optional, List, Dict, Any, Literal
-from datetime import datetime
+from datetime import date, datetime
 
 
 # --- Health & Common ---
@@ -26,6 +26,7 @@ class PrecedentSearchRequest(BaseModel):
     year_from: Optional[int] = Field(None, description="Start year filter for Kanoon fallback")
     year_to: Optional[int] = Field(None, description="End year filter for Kanoon fallback")
     limit: int = Field(10, ge=1, le=100, description="Max Kanoon results to fetch for supplementation")
+    before_date: Optional[date] = Field(None, description="Return only judgments decided strictly before this date")
 
 
 class SearchResult(BaseModel):
@@ -267,11 +268,12 @@ class SimulationRequest(BaseModel):
             "appealing an acquittal). Defaults to 'unclear' if not provided."
         ),
     )
+    filing_date: Optional[date] = Field(None, description="Date the appeal was filed; used to bound precedent retrieval upstream")
 
 
 class SimulationResult(BaseModel):
     """Full judicial outcome prediction with explainable scoring."""
-    win_probability: float = Field(..., ge=0.0, le=1.0, description="Petitioner win probability (0–1, clamped to [0.05, 0.95])")
+    win_probability: float = Field(..., ge=0.0, le=1.0, description="Estimated chance of any appellate relief, including partial relief (0–1)")
     risk_assessment: RiskAssessment
     score_breakdown: List[ScoreComponent]
     key_strengths: List[str] = Field(default_factory=list, description="Top 3 factors helping the case")

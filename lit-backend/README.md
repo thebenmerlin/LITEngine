@@ -1,3 +1,12 @@
+---
+title: LITEngine Backend
+emoji: ⚖️
+colorFrom: blue
+colorTo: gray
+sdk: docker
+app_port: 7860
+---
+
 # Legal Intelligence Terminal (LIT) — Backend
 
 AI-powered legal intelligence system for Indian courts. This FastAPI backend provides semantic precedent search, automated fact extraction from case text, argument graph construction, and judicial outcome simulation. It integrates with Indian Kanoon for live judgment scraping and uses Hugging Face's Inference API for embeddings and legal NLP.
@@ -34,7 +43,91 @@ uvicorn main:app --reload
 
 ---
 
+## Deploy to Hugging Face Spaces (Docker)
+
+The Space repository is the contents of this `lit-backend/` directory. Its
+`Dockerfile` and this README must appear at the root of the Space repository.
+The image runs Python 3.11 as UID 1000, uses the CPU-only PyTorch wheel,
+preloads the public MiniLM fallback model, and serves FastAPI on port 7860.
+The included outcome artifact and precedent fixture index are committed to Git
+and travel with the subtree.
+
+1. Create a **Docker** Space named `litengine-backend` under your Hugging Face
+   account. Choose CPU Basic hardware. Hugging Face currently requires a paid
+   account plan to *create* a compute Space, even though CPU Basic has no hourly
+   hardware charge. If this account cannot create one, this deployment target
+   is unavailable until the account is eligible.
+2. In the Space's **Settings → Variables and secrets**, set:
+
+   | Name | Type | Value |
+   |---|---|---|
+   | `PORT` | Variable | `7860` |
+   | `ENV` | Variable | `production` |
+   | `ALLOWED_ORIGINS` | Variable | Exact frontend origin(s), comma-separated, for example `https://litengine.example.com` |
+   | `HUGGINGFACE_API_KEY` | Secret | An Inference API token, if using the hosted embedding path |
+
+   `HUGGINGFACE_API_KEY` is optional if using the local MiniLM fallback. The
+   GitHub deployment token `HF_TOKEN` is separate and must never be put in
+   Space variables or committed to Git.
+3. After the backend changes are committed on the monorepo's `main` branch,
+   set `HF_USER` to the Space owner and run from the monorepo root:
+
+   ```bash
+   HF_USER=your-hf-username
+   git remote add hf "https://huggingface.co/spaces/${HF_USER}/litengine-backend"
+   git fetch hf main
+   git log --oneline -3 hf/main  # inspect the new Space's starter commit
+   split_sha=$(git subtree split --prefix=lit-backend HEAD)
+   git push --force-with-lease=refs/heads/main:$(git rev-parse hf/main) hf "$split_sha:refs/heads/main"
+   ```
+
+   The initial push replaces the **new, dedicated Space's starter README**
+   with the backend subtree. Use it only after reviewing `hf/main`; it does
+   not overwrite a Space with work you want to keep. Git prompts for your
+   Hugging Face username and a write-scoped access token as the password.
+   Subsequent pushes are fast-forward and need no force:
+
+   ```bash
+   git push hf "$(git subtree split --prefix=lit-backend HEAD):refs/heads/main"
+   ```
+
+4. For automatic pushes from GitHub `main`, set the repository **variable**
+   `HF_USER` to the Space owner and **secret** `HF_TOKEN` to a fine-grained
+   token with write access to only this Space. The
+   monorepo's `.github/workflows/deploy-hf-space.yml` pushes the subtree when
+   `lit-backend/` changes; it requires the initial seed above.
+5. Set the GitHub repository **variable** `HF_SPACE_URL` to the public direct
+   URL, usually `https://your-hf-username-litengine-backend.hf.space` (use the exact
+   URL shown by your Space). The
+   monorepo's `.github/workflows/keep-alive.yml` calls `/health` every six hours
+   and supports a manual run from the Actions tab. It fails
+   visibly if the request or JSON health check fails. Scheduled GitHub Actions
+   may be delayed and can be disabled after 60 days without activity in a
+   public repository, so this is best effort rather than an uptime guarantee.
+
+Verify once the Space reports **Running**:
+
+```bash
+HF_SPACE_URL=https://your-hf-username-litengine-backend.hf.space
+curl --fail-with-body --show-error --max-time 30 \
+  "${HF_SPACE_URL}/health"
+# Expect JSON containing "status":"healthy".
+curl --fail-with-body --show-error --max-time 30 \
+  "${HF_SPACE_URL}/api/v1/health/ready"
+# Check outcome_model_loaded and index_loaded before testing model endpoints.
+```
+
+Then manually run both GitHub workflows and check their logs. If the frontend
+is deployed separately, point its backend URL to the same direct Space URL and
+check CORS from that exact frontend origin. `logs/`, `fixtures/`, and `data/`
+are writable but Space-local runtime changes are ephemeral; persist any new
+data outside the Space before relying on it.
+
+---
+
 ## Deploy on Render (Free Tier)
+
+For private Oracle A1 VM staging, see [deploy/oracle/README.md](deploy/oracle/README.md).
 
 1. **Connect your repo** — On Render, create a new **Web Service** and connect the Git repository containing this `lit-backend/` directory.
 

@@ -3,6 +3,8 @@
 /lit-backend/**/*.py[cod]
 /lit-backend/.env
 /lit-backend/logs/
+/lit-backend/deploy/oracle/.env.stage
+/lit-backend/deploy/oracle/state/
 /lit-backend/venv/
 /lit-backend/.pytest_cache/
 /lit-backend/data/*

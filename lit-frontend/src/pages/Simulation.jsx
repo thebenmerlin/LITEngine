@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom'
 import { ArrowRight, ChartNoAxesCombined, Download } from 'lucide-react'
-import { CaseComposer, EmptyPanel, ErrorNotice, InfoNotice, PageHeading, RebuildButton, SectionTitle, percent } from '../components/workspace/Primitives'
+import { AppellantTypeField, CaseComposer, EmptyPanel, ErrorNotice, FilingDateField, InfoNotice, PageHeading, RebuildButton, SectionTitle, percent } from '../components/workspace/Primitives'
 import { useWorkspace } from '../workspace/WorkspaceContext'
 
 function exportResult(simulation) {
@@ -13,7 +13,7 @@ function exportResult(simulation) {
 }
 
 export default function Simulation() {
-  const { profile, precedents, graph, simulation, status, errors, refreshSimulation, stale, busy } = useWorkspace()
+  const { profile, precedents, graph, simulation, status, errors, refreshSimulation, stale, busy, appellantType, filingDate } = useWorkspace()
   const result = simulation?.result
   const comparison = simulation?.old_vs_new
   const model = comparison?.new_model
@@ -25,11 +25,12 @@ export default function Simulation() {
     {stale && <InfoNotice>The case text changed. Reanalyze before relying on these results.</InfoNotice>}
     <ErrorNotice message={errors.simulation} title="Outcome analysis failed" />
     {!profile && <CaseComposer compact />}
-    {!result && status.simulation !== 'running' && <EmptyPanel icon={ChartNoAxesCombined} title="A factor-by-factor assessment" body={profile ? 'The case profile is ready. Run the assessment to inspect the estimate and its contributing factors.' : 'Analyze a case to generate an outcome assessment.'} action={profile && <RebuildButton onClick={refreshSimulation} disabled={stale || busy}>Run assessment</RebuildButton>} />}
+    {profile && <><AppellantTypeField disabled={busy} /><FilingDateField disabled={busy} /></>}
+    {!result && status.simulation !== 'running' && <EmptyPanel icon={ChartNoAxesCombined} title="A factor-by-factor assessment" body={profile ? 'The case profile is ready. Run the assessment to inspect the estimate and its contributing factors.' : 'Analyze a case to generate an outcome assessment.'} action={profile && <RebuildButton onClick={refreshSimulation} disabled={stale || busy || !appellantType || !filingDate}>Run assessment</RebuildButton>} />}
     {status.simulation === 'running' && <div className="loading-line"><span className="spin-dot" /> Weighing case factors and precedents…</div>}
     {result && <>
       <div className="outcome-hero">
-        <div className="outcome-score"><span className="eyebrow">ESTIMATED PETITIONER SUCCESS</span><strong>{percent(result.win_probability)}</strong><span className="outcome-risk">{result.risk_assessment?.level || 'Assessment'}</span></div>
+        <div className="outcome-score"><span className="eyebrow">ESTIMATED CHANCE OF ANY APPELLATE RELIEF</span><strong>{percent(result.win_probability)}</strong><span className="outcome-risk">{result.risk_assessment?.level || 'Assessment'}</span></div>
         <div className="outcome-explanation"><span className="eyebrow">READING THE RESULT</span><h2>{result.recommendation || 'Review the evidence and precedent picture before drawing conclusions.'}</h2><p>Primary method: {comparison?.primary === 'new_model' ? 'trained outcome model' : 'rule-based heuristic'}. This is a research estimate drawn from the supplied case material.</p><div className="outcome-track"><span style={{ left: `${Math.round(result.win_probability * 100)}%` }} /><i style={{ width: `${Math.round(result.win_probability * 100)}%` }} /></div><div className="track-labels"><span>UNFAVORABLE</span><span>UNCERTAIN</span><span>FAVORABLE</span></div></div>
       </div>
 

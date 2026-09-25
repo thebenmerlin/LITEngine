@@ -15,6 +15,7 @@ from services.outcome_model import (
     ml_result_to_simulation_result,
     predict_ml_outcome,
 )
+from services.precedent_filter import decision_before
 from utils.logger import get_logger
 
 logger = get_logger(__name__)
@@ -46,6 +47,11 @@ async def predict(request: SimulationRequest):
         f"appellant_type={request.appellant_type}"
     )
 
+    if request.filing_date and any(
+        not decision_before(item.date, request.filing_date) for item in request.precedents
+    ):
+        raise HTTPException(status_code=422, detail="Precedents must have a known decision date before the appeal filing date")
+
     try:
         heuristic_result: SimulationResult = predict_outcome(
             profile=request.case_profile,
@@ -63,7 +69,8 @@ async def predict(request: SimulationRequest):
         for sc in heuristic_result.score_breakdown
         if sc.component in COMPONENT_NAME_TO_FEATURE_KEY
     }
-    ml_result = predict_ml_outcome(raw_scores, request.appellant_type)
+    extraction_method = request.case_profile.metadata.extraction_method if request.case_profile.metadata else None
+    ml_result = predict_ml_outcome(raw_scores, request.appellant_type, extraction_method, request.filing_date is not None)
 
     settings = get_settings()
     primary = settings.OUTCOME_MODEL_PRIMARY if settings.OUTCOME_MODEL_PRIMARY in _VALID_PRIMARY else "new_model"

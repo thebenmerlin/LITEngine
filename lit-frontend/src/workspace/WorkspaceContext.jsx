@@ -12,6 +12,8 @@ import { useSettings } from '../hooks/useSettings.jsx'
 
 const WorkspaceContext = createContext(null)
 const DRAFT_KEY = 'lit-active-case-draft'
+const APPELLANT_KEY = 'lit-active-case-appellant'
+const FILING_DATE_KEY = 'lit-active-case-filing-date'
 const INITIAL_STATUS = { facts: 'idle', precedents: 'idle', graph: 'idle', simulation: 'idle' }
 
 function messageFor(error) {
@@ -37,6 +39,12 @@ export function WorkspaceProvider({ children }) {
   const [caseText, setCaseText] = useState(() => {
     try { return sessionStorage.getItem(DRAFT_KEY) || '' } catch { return '' }
   })
+  const [appellantType, setAppellantTypeState] = useState(() => {
+    try { return sessionStorage.getItem(APPELLANT_KEY) || '' } catch { return '' }
+  })
+  const [filingDate, setFilingDateState] = useState(() => {
+    try { return sessionStorage.getItem(FILING_DATE_KEY) || '' } catch { return '' }
+  })
   const [analyzedText, setAnalyzedText] = useState('')
   const [query, setQuery] = useState('')
   const [profile, setProfile] = useState(null)
@@ -52,6 +60,30 @@ export function WorkspaceProvider({ children }) {
   useEffect(() => {
     try { sessionStorage.setItem(DRAFT_KEY, caseText) } catch { /* storage may be disabled */ }
   }, [caseText])
+
+  useEffect(() => {
+    try { sessionStorage.setItem(APPELLANT_KEY, appellantType) } catch { /* storage may be disabled */ }
+  }, [appellantType])
+
+  useEffect(() => {
+    try { sessionStorage.setItem(FILING_DATE_KEY, filingDate) } catch { /* storage may be disabled */ }
+  }, [filingDate])
+
+  const setAppellantType = useCallback((value) => {
+    setAppellantTypeState(value)
+    setSimulation(null)
+    setStatus((current) => ({ ...current, simulation: 'idle' }))
+  }, [])
+
+  const setFilingDate = useCallback((value) => {
+    setFilingDateState(value)
+    setProfile(null)
+    setAnalyzedText('')
+    setPrecedents(null)
+    setGraph(null)
+    setSimulation(null)
+    setStatus(INITIAL_STATUS)
+  }, [])
 
   useEffect(() => {
     let active = true
@@ -75,6 +107,8 @@ export function WorkspaceProvider({ children }) {
   const clearCase = useCallback(() => {
     runId.current += 1
     setCaseText('')
+    setAppellantTypeState('')
+    setFilingDateState('')
     setAnalyzedText('')
     setQuery('')
     setProfile(null)
@@ -84,11 +118,13 @@ export function WorkspaceProvider({ children }) {
     setStatus(INITIAL_STATUS)
     setErrors({})
     try { sessionStorage.removeItem(DRAFT_KEY) } catch { /* storage may be disabled */ }
+    try { sessionStorage.removeItem(APPELLANT_KEY) } catch { /* storage may be disabled */ }
+    try { sessionStorage.removeItem(FILING_DATE_KEY) } catch { /* storage may be disabled */ }
   }, [])
 
   const runAnalysis = useCallback(async () => {
     const text = caseText.trim()
-    if (!text) return
+    if (!text || !appellantType || !filingDate) return
     const id = ++runId.current
     const current = () => runId.current === id
     setErrors({})
@@ -118,7 +154,7 @@ export function WorkspaceProvider({ children }) {
     setStep('precedents', 'running')
     let matches = []
     try {
-      const result = await searchPrecedents({ query: searchQuery, topK: settings.defaultResultCount, useKanoon: settings.includeKanoon })
+      const result = await searchPrecedents({ query: searchQuery, topK: 5, useKanoon: false, beforeDate: filingDate })
       if (!current()) return
       matches = result.results || []
       setHealth('online')
@@ -151,6 +187,8 @@ export function WorkspaceProvider({ children }) {
         caseProfile: extracted,
         precedents: matches.slice(0, 5),
         graphStats: builtGraph ? { node_count: builtGraph.node_count, weak_nodes: builtGraph.weak_nodes } : null,
+        appellantType,
+        filingDate,
       })
       if (!current()) return
       setSimulation(response)
@@ -161,7 +199,7 @@ export function WorkspaceProvider({ children }) {
       setStep('simulation', 'error')
       setStepError('simulation', error)
     }
-  }, [caseText, settings, setStep, setStepError])
+  }, [caseText, appellantType, filingDate, settings, setStep, setStepError])
 
   const search = useCallback(async ({ searchQuery = query, topK = 5, useKanoon = true } = {}) => {
     if (!searchQuery.trim() || busy) return
@@ -170,7 +208,7 @@ export function WorkspaceProvider({ children }) {
     setStep('precedents', 'running')
     setErrors((current) => ({ ...current, precedents: null }))
     try {
-      const response = await searchPrecedents({ query: searchQuery.trim(), topK, useKanoon })
+      const response = await searchPrecedents({ query: searchQuery.trim(), topK: profile ? 5 : topK, useKanoon: profile ? false : useKanoon, beforeDate: filingDate || null })
       if (runId.current !== id) return
       setHealth('online')
       setPrecedents(response.results || [])
@@ -184,7 +222,7 @@ export function WorkspaceProvider({ children }) {
       setStep('precedents', 'error')
       setStepError('precedents', error)
     }
-  }, [query, busy, setStep, setStepError])
+  }, [query, filingDate, profile, busy, setStep, setStepError])
 
   const refreshGraph = useCallback(async () => {
     if (!profile || busy) return
@@ -207,7 +245,7 @@ export function WorkspaceProvider({ children }) {
   }, [profile, precedents, busy, setStep, setStepError])
 
   const refreshSimulation = useCallback(async () => {
-    if (!profile || busy) return
+    if (!profile || !appellantType || !filingDate || busy) return
     const id = ++runId.current
     setStep('simulation', 'running')
     setErrors((current) => ({ ...current, simulation: null }))
@@ -216,6 +254,8 @@ export function WorkspaceProvider({ children }) {
         caseProfile: profile,
         precedents: (precedents || []).slice(0, 5),
         graphStats: graph ? { node_count: graph.node_count, weak_nodes: graph.weak_nodes } : null,
+        appellantType,
+        filingDate,
       })
       if (runId.current !== id) return
       setHealth('online')
@@ -226,13 +266,13 @@ export function WorkspaceProvider({ children }) {
       setStep('simulation', 'error')
       setStepError('simulation', error)
     }
-  }, [profile, precedents, graph, busy, setStep, setStepError])
+  }, [profile, precedents, graph, appellantType, filingDate, busy, setStep, setStepError])
 
   const stale = Boolean(profile && caseText.trim() !== analyzedText)
 
   return (
     <WorkspaceContext.Provider value={{
-      caseText, setCaseText, analyzedText, query, setQuery, profile, precedents,
+      caseText, setCaseText, appellantType, setAppellantType, filingDate, setFilingDate, analyzedText, query, setQuery, profile, precedents,
       graph, simulation, status, errors, health, busy, stale, clearCase,
       runAnalysis, search, refreshGraph, refreshSimulation,
     }}>

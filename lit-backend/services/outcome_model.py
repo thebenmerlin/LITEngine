@@ -17,12 +17,15 @@ router) are expected to fall back to the heuristic when this happens,
 never to error the endpoint.
 """
 
+import hashlib
+import json
 import math
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 from models.schemas import MLFeatureContribution, MLModelResult, ScoreComponent, SimulationResult
 from services.simulator import PROB_MAX, PROB_MIN
+from config import get_settings
 from utils.logger import get_logger
 
 logger = get_logger(__name__)
@@ -31,10 +34,11 @@ logger = get_logger(__name__)
 # Constants
 # ---------------------------------------------------------------------------
 
-MODEL_PATH = (
+DEFAULT_MODEL_PATH = (
     Path(__file__).resolve().parent.parent
     / "data" / "outcome_dataset" / "model" / "outcome_classifier_binary.joblib"
 )
+MODEL_PATH = Path(get_settings().OUTCOME_MODEL_PATH).expanduser() if get_settings().OUTCOME_MODEL_PATH else DEFAULT_MODEL_PATH
 
 # Must exactly match scripts/outcome_dataset/train_model.py's
 # FEATURE_COLUMNS / APPELLANT_CATEGORIES / feature_names_out() ordering —
@@ -82,6 +86,25 @@ _pipeline = None
 _load_error: Optional[str] = None
 
 
+def _validate_filing_promotion(pipeline) -> None:
+    if not getattr(pipeline, "requires_filing_date", False):
+        return
+    report_path = MODEL_PATH.parent / "evaluation_report.json"
+    metadata_path = MODEL_PATH.parent / "feature_metadata.json"
+    report = json.loads(report_path.read_text(encoding="utf-8"))
+    metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
+    if not report.get("promotion_gate_passed") or report.get("candidate_version") != pipeline.version:
+        raise ValueError("filing-based model has no passing holdout report")
+    if hashlib.sha256(MODEL_PATH.read_bytes()).hexdigest() != report.get("candidate_sha256"):
+        raise ValueError("model artifact differs from evaluated artifact")
+    index_path = get_settings().PRECEDENT_INDEX_PATH
+    if not index_path or not Path(index_path).expanduser().is_file():
+        raise ValueError("evaluated precedent index is not configured")
+    index_hash = hashlib.sha256(Path(index_path).expanduser().read_bytes()).hexdigest()
+    if index_hash != metadata.get("precedent_index_sha256"):
+        raise ValueError("serving precedent index differs from evaluated index")
+
+
 def _load_model() -> None:
     global _pipeline, _load_error
     try:
@@ -105,6 +128,9 @@ def _load_model() -> None:
         n_features_expected = len(FEATURE_ORDER) + len(APPELLANT_TYPE_CATEGORIES)
         if clf.coef_.shape[-1] != n_features_expected:
             raise ValueError(f"unexpected coef_ shape {clf.coef_.shape}, expected last dim {n_features_expected}")
+        if hasattr(pipeline, "feature_order") and tuple(pipeline.feature_order) != tuple(FEATURE_ORDER + ["appellant_type"]):
+            raise ValueError("model feature order does not match the serving contract")
+        _validate_filing_promotion(pipeline)
     except Exception as exc:
         _load_error = f"failed to load/validate {MODEL_PATH}: {exc}"
         logger.warning(f"Outcome model unavailable — {_load_error}. Falling back to heuristic only.")
@@ -175,7 +201,10 @@ def _fallback_result() -> MLModelResult:
     )
 
 
-def predict_ml_outcome(raw_scores: Dict[str, float], appellant_type: str) -> MLModelResult:
+def predict_ml_outcome(
+    raw_scores: Dict[str, float], appellant_type: str,
+    extraction_method: Optional[str] = None, filing_date_provided: bool = False,
+) -> MLModelResult:
     """
     Args:
         raw_scores: the 5 component raw_score values (0-1) already
@@ -185,6 +214,14 @@ def predict_ml_outcome(raw_scores: Dict[str, float], appellant_type: str) -> MLM
             a direct user input, never inferred from text here.
     """
     if _pipeline is None:
+        return _fallback_result()
+    if getattr(_pipeline, "requires_filing_date", False) and not filing_date_provided:
+        logger.warning("Filing-based outcome model requires an appeal filing date")
+        return _fallback_result()
+
+    expected_method = getattr(_pipeline, "extraction_method", None)
+    if expected_method and extraction_method != expected_method:
+        logger.warning(f"Outcome model expects {expected_method} extraction; received {extraction_method}")
         return _fallback_result()
 
     missing = [f for f in FEATURE_ORDER if f not in raw_scores]
@@ -258,7 +295,7 @@ def predict_ml_outcome(raw_scores: Dict[str, float], appellant_type: str) -> MLM
         key_weaknesses=key_weaknesses,
         recommendation=recommendation,
         model_loaded=True,
-        model_version=str(MODEL_PATH.name),
+        model_version=getattr(_pipeline, "version", MODEL_PATH.name),
     )
 
 

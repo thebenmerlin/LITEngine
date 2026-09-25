@@ -293,6 +293,10 @@ a { color: inherit; text-decoration: none; }
 .case-composer.compact textarea { min-height: 116px; }
 .case-composer textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-soft); }
 .case-composer textarea::placeholder { color: var(--muted-light); }
+.appellant-field { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-top: 12px; font-size: 11px; }
+.appellant-field label { color: var(--ink); font-weight: 600; }
+.appellant-field select { min-height: 34px; padding: 6px 9px; color: var(--ink); border: 1px solid var(--line); background: var(--surface-soft); border-radius: 3px; }
+.appellant-field input { min-height: 34px; padding: 6px 9px; color: var(--ink); border: 1px solid var(--line); background: var(--surface-soft); border-radius: 3px; }
 .composer-footer { display: flex; justify-content: space-between; align-items: center; gap: 15px; padding-top: 12px; }
 .composer-note { font-size: 10px; color: var(--muted); }
 .composer-buttons { display: flex; align-items: center; gap: 16px; }

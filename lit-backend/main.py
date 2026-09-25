@@ -9,6 +9,7 @@ from utils.logger import setup_logger, get_logger
 from utils.cache import cache
 from services.embedder import embedder_service
 from services.kanoon import kanoon_service
+from services.outcome_model import is_model_loaded
 
 # Routers
 from routers import precedent, facts, graph, simulation
@@ -56,8 +57,10 @@ async def lifespan(app: FastAPI):
     yield
 
     # ---- Shutdown -------------------------------------------------------
-    logger.info("Shutting down — saving FAISS index…")
-    embedder_service.save_index()
+    logger.info("Shutting down")
+    if not settings.PRECEDENT_INDEX_PATH:
+        logger.info("Saving mutable FAISS index")
+        embedder_service.save_index()
     cache.clear()
     await embedder_service.close()
     await kanoon_service.close()
@@ -110,6 +113,8 @@ def create_app() -> FastAPI:
             "ready": True,
             "index_loaded": _index_loaded,
             "hf_key_set": settings.hf_key_set,
+            "outcome_model_loaded": is_model_loaded(),
+            "dated_precedent_index_configured": bool(settings.PRECEDENT_INDEX_PATH),
         }
 
     # Register routers with /api/v1 prefix

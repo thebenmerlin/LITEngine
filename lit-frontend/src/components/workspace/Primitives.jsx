@@ -33,7 +33,7 @@ export function EmptyPanel({ number, title, body, action, icon: Icon }) {
 }
 
 export function CaseComposer({ compact = false, showHeading = true }) {
-  const { caseText, setCaseText, runAnalysis, busy, stale, status, errors } = useWorkspace()
+  const { caseText, setCaseText, appellantType, filingDate, runAnalysis, busy, stale, status, errors } = useWorkspace()
   const activeStep = Object.entries(status).find(([, value]) => value === 'running')?.[0]
   const labels = { facts: 'Extracting case facts', precedents: 'Finding precedents', graph: 'Mapping arguments', simulation: 'Estimating outcome' }
 
@@ -41,18 +41,41 @@ export function CaseComposer({ compact = false, showHeading = true }) {
     {showHeading && <div className="composer-header"><span className="eyebrow">CASE MATERIAL</span><span>DRAFT STORED FOR THIS SESSION</span></div>}
     <label htmlFor="case-description" className="sr-only">Case description</label>
     <textarea id="case-description" value={caseText} onChange={(event) => setCaseText(event.target.value)}
-      placeholder="Paste a case description, brief, FIR, or judgment excerpt. Include the legal questions and material facts for a stronger analysis." />
+      placeholder="Paste pre-decision case facts, a brief, or a petition. Include the legal questions and material facts for a stronger analysis." />
+    <AppellantTypeField disabled={busy} />
+    <FilingDateField disabled={busy} />
     <div className="composer-footer">
       <div className="composer-note">{caseText.length ? `${caseText.trim().split(/\s+/).length} words` : 'Start with the facts of the matter'}</div>
       <div className="composer-buttons">
         <button className="text-button" onClick={() => setCaseText(SAMPLE_CASE_TEXT)} disabled={busy}><Sparkles size={15} /> Try sample</button>
-        <button className="button button-primary" onClick={runAnalysis} disabled={!caseText.trim() || busy}>
+        <button className="button button-primary" onClick={runAnalysis} disabled={!caseText.trim() || !appellantType || !filingDate || busy}>
           {busy ? <><LoaderCircle size={16} className="spin" /> {labels[activeStep] || 'Analyzing'}</> : <>{stale ? 'Reanalyze case' : 'Analyze case'} <ArrowRight size={16} /></>}
         </button>
       </div>
     </div>
     {stale && <p className="composer-stale">The case text has changed since the current results were generated.</p>}
     <ErrorNotice message={errors.facts} title="Fact extraction failed" />
+  </div>
+}
+
+export function AppellantTypeField({ disabled = false }) {
+  const { appellantType, setAppellantType } = useWorkspace()
+  return <div className="appellant-field">
+    <label htmlFor="appellant-type">Who is bringing the appeal?</label>
+    <select id="appellant-type" required value={appellantType} disabled={disabled} onChange={(event) => setAppellantType(event.target.value)}>
+      <option value="" disabled>Select appellant type</option>
+      <option value="accused_appeal">Accused person appealing a conviction</option>
+      <option value="state_appeal">State or complainant appealing an acquittal</option>
+      <option value="unclear">Other or unsure</option>
+    </select>
+  </div>
+}
+
+export function FilingDateField({ disabled = false }) {
+  const { filingDate, setFilingDate } = useWorkspace()
+  return <div className="appellant-field">
+    <label htmlFor="filing-date">Appeal filing date</label>
+    <input id="filing-date" type="date" required value={filingDate} disabled={disabled} onChange={(event) => setFilingDate(event.target.value)} />
   </div>
 }
 

@@ -1,0 +1,50 @@
+name: Keep LITEngine Backend Awake
+
+on:
+  schedule:
+    # Offset from the hour to reduce GitHub's scheduled-job congestion.
+    - cron: '17 */6 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  ping-health:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    env:
+      HF_SPACE_URL: ${{ vars.HF_SPACE_URL || 'https://thebenmerlin-lit-backend.hf.space' }}
+
+    steps:
+      - name: Check Space health
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ -z "${HF_SPACE_URL}" ]]; then
+            echo 'Set the HF_SPACE_URL repository variable to the public https://...hf.space URL.' >&2
+            exit 1
+          fi
+          base_url="${HF_SPACE_URL%/}"
+          if [[ ! "$base_url" =~ ^https://[A-Za-z0-9.-]+\.hf\.space$ ]]; then
+            echo 'HF_SPACE_URL must be a public https://...hf.space URL without a path.' >&2
+            exit 1
+          fi
+
+          response_file="$(mktemp)"
+          trap 'rm -f "$response_file"' EXIT
+          # A sleeping Space may take time to start; retry transient failures.
+          curl --fail-with-body --silent --show-error --location \
+            --connect-timeout 10 --max-time 30 \
+            --retry 6 --retry-delay 20 --retry-all-errors --retry-max-time 240 \
+            --output "$response_file" "$base_url/health"
+          python3 - "$response_file" <<'PY'
+          import json
+          import sys
+
+          with open(sys.argv[1], encoding="utf-8") as response:
+              payload = json.load(response)
+          if payload.get("status") != "healthy":
+              raise SystemExit(f"Unexpected /health response: {payload!r}")
+          print("Space /health returned status=healthy")
+          PY

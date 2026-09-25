@@ -58,7 +58,11 @@ CHUNK_WORD_OVERLAP = 50
 MAX_RETRIES = 3
 RETRY_BASE_DELAY = 2.0  # seconds (2, 4, 8, ...)
 
-INDEX_FILE = Path(__file__).resolve().parent.parent / "fixtures" / "precedent_index.json"
+INDEX_FILE = (
+    Path(get_settings().PRECEDENT_INDEX_PATH).expanduser()
+    if get_settings().PRECEDENT_INDEX_PATH
+    else Path(__file__).resolve().parent.parent / "fixtures" / "precedent_index.json"
+)
 
 # ---------------------------------------------------------------------------
 # Helpers

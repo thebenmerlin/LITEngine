@@ -1,0 +1,36 @@
+name: Sync to Hugging Face Space
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'lit-backend/**'
+  workflow_dispatch:
+
+jobs:
+  sync-to-hub:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Push lit-backend subtree to Hugging Face Space
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+          HF_USERNAME: ${{ vars.HF_USERNAME || 'thebenmerlin' }}
+        run: |
+          if [ -z "$HF_TOKEN" ]; then
+            echo "::error::HF_TOKEN secret is not set in GitHub repository settings!"
+            exit 1
+          fi
+
+          git config --global user.email "bot@litengine.internal"
+          git config --global user.name "LITEngine Deploy Bot"
+
+          # Extract lit-backend folder commit history
+          SPLIT_COMMIT=$(git subtree split --prefix=lit-backend)
+          
+          # Force push directly to Hugging Face Space repository main branch
+          git push --force https://$HF_USERNAME:$HF_TOKEN@huggingface.co/spaces/$HF_USERNAME/lit-backend "$SPLIT_COMMIT:refs/heads/main"

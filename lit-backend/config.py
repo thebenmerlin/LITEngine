@@ -41,6 +41,8 @@ class Settings(BaseSettings):
     # "old_heuristic" if the trained model fails to load, regardless of
     # this setting. Flip via env var for a fast, code-free revert.
     OUTCOME_MODEL_PRIMARY: str = "new_model"
+    OUTCOME_MODEL_PATH: str = ""  # Optional gated, versioned artifact path
+    PRECEDENT_INDEX_PATH: str = ""  # Optional dated precedent index used by live search
 
     @property
     def IS_PRODUCTION(self) -> bool:

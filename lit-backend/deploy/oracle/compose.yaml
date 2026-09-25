@@ -1,0 +1,29 @@
+services:
+  backend:
+    build:
+      context: ../..
+      dockerfile: deploy/oracle/Dockerfile
+    image: lit-backend:oracle-stage
+    env_file:
+      - .env.stage
+    environment:
+      ENV: production
+      PORT: "8000"
+      USE_FIXTURES: "false"
+      PRECEDENT_INDEX_PATH: /data/precedent_index.json
+      OUTCOME_MODEL_PRIMARY: new_model
+    ports:
+      - "127.0.0.1:8000:8000"
+    volumes:
+      - ./state/precedent_index.json:/data/precedent_index.json:ro
+      - hf_cache:/home/lit/.cache/huggingface
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import httpx; r=httpx.get('http://127.0.0.1:8000/api/v1/health/ready', timeout=5); r.raise_for_status(); d=r.json(); assert d['outcome_model_loaded'] and d['index_loaded']"]
+      interval: 30s
+      timeout: 10s
+      start_period: 120s
+      retries: 3
+
+volumes:
+  hf_cache:

@@ -1,6 +1,7 @@
 """Precedent router — semantic search + Kanoon fallback + FAISS index management."""
 
 from fastapi import APIRouter, HTTPException
+from config import get_settings
 from models.schemas import (
     PrecedentSearchRequest,
     PrecedentSearchResponse,
@@ -14,6 +15,7 @@ from models.schemas import (
 )
 from services.embedder import embedder_service
 from services.kanoon import kanoon_service
+from services.precedent_filter import decision_before
 from utils.logger import get_logger
 
 logger = get_logger(__name__)
@@ -67,11 +69,16 @@ async def search_precedents(request: PrecedentSearchRequest):
             query_emb = None
 
         if query_emb is not None:
-            faiss_results = embedder_service.search(query_emb, top_k=request.top_k)
+            # Fetch enough hits to fill top_k after excluding future or
+            # undated judgments. The index can contain multiple chunks/doc.
+            fetch_count = embedder_service.total_vectors if request.before_date else request.top_k
+            faiss_results = embedder_service.search(query_emb, top_k=fetch_count)
 
             for hit in faiss_results:
                 meta = hit["metadata"]
                 doc_id = meta.get("doc_id", "")
+                if request.before_date and not decision_before(meta.get("date"), request.before_date):
+                    continue
                 if doc_id in seen_doc_ids:
                     continue
                 seen_doc_ids.add(doc_id)
@@ -88,6 +95,8 @@ async def search_precedents(request: PrecedentSearchRequest):
                         source="faiss",
                     )
                 )
+                if len(all_matches) >= request.top_k:
+                    break
 
             logger.info(
                 f"FAISS search returned {len(faiss_results)} hits "
@@ -106,10 +115,12 @@ async def search_precedents(request: PrecedentSearchRequest):
                 query=request.query,
                 court=request.court,
                 year_from=request.year_from,
-                year_to=request.year_to,
+                year_to=min(request.year_to, request.before_date.year) if request.before_date and request.year_to else (request.before_date.year if request.before_date else request.year_to),
                 limit=remaining,
             )
             for sr in kanoon_results:
+                if request.before_date and not decision_before(sr.date, request.before_date):
+                    continue
                 if sr.doc_id in seen_doc_ids:
                     continue
                 seen_doc_ids.add(sr.doc_id)
@@ -175,6 +186,8 @@ async def index_document(request: IndexRequest):
     Fetch a judgment from Kanoon, chunk it, embed the chunks,
     and add them to the FAISS index.
     """
+    if get_settings().PRECEDENT_INDEX_PATH:
+        raise HTTPException(status_code=403, detail="The evaluated precedent index is frozen")
     doc_id = request.doc_id
     logger.info(f"Indexing document into FAISS: doc_id={doc_id}")
 

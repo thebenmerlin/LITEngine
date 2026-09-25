@@ -107,13 +107,13 @@ export async function request(path, options = {}) {
 /**
  * Semantic search across precedents (FAISS) with optional Kanoon fallback.
  *
- * @param {{ query: string, topK?: number, useKanoon?: boolean }} params
+ * @param {{ query: string, topK?: number, useKanoon?: boolean, beforeDate?: string }} params
  * @returns {Promise<object>}  PrecedentSearchResponse
  */
-export async function searchPrecedents({ query, topK = 5, useKanoon = true }) {
+export async function searchPrecedents({ query, topK = 5, useKanoon = true, beforeDate = null }) {
   return request('/precedent/search', {
     method: 'POST',
-    body: JSON.stringify({ query, top_k: topK, use_kanoon: useKanoon }),
+    body: JSON.stringify({ query, top_k: topK, use_kanoon: useKanoon, before_date: beforeDate }),
   })
 }
 
@@ -179,16 +179,18 @@ export async function buildGraph({ caseProfile, precedents = [] }) {
 /**
  * Predict a judicial outcome from a StructuredCaseProfile.
  *
- * @param {{ caseProfile: object, precedents?: object[], graphStats?: object | null }} params
+ * @param {{ caseProfile: object, precedents?: object[], graphStats?: object | null, appellantType: string, filingDate: string }} params
  * @returns {Promise<{ result: object, processing_time_ms: number, timestamp: string }>}
  */
-export async function runSimulation({ caseProfile, precedents = [], graphStats = null }) {
+export async function runSimulation({ caseProfile, precedents = [], graphStats = null, appellantType, filingDate }) {
   return request('/simulation/predict', {
     method: 'POST',
     body: JSON.stringify({
       case_profile: caseProfile,
       precedents,
       graph_stats: graphStats,
+      appellant_type: appellantType,
+      filing_date: filingDate,
     }),
   })
 }

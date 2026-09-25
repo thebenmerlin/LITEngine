@@ -1,0 +1,17 @@
+.env
+.env.*
+.DS_Store
+venv/
+logs/
+__pycache__/
+**/__pycache__/
+**/*.pyc
+tests/
+deploy/oracle/state/
+deploy/oracle/.env.stage
+data/*
+!data/outcome_dataset/
+data/outcome_dataset/*
+!data/outcome_dataset/model/
+data/outcome_dataset/model/*
+!data/outcome_dataset/model/outcome_classifier_binary.joblib
