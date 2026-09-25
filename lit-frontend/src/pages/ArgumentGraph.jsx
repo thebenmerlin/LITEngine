@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import CytoscapeComponent from 'react-cytoscapejs'
 import { ArrowUpRight, Download, Focus, GitBranch, Maximize, Search, ZoomIn, ZoomOut } from 'lucide-react'
-import { EmptyPanel, ErrorNotice, PageHeading, RebuildButton, SampleCaseMenu } from '../components/workspace/Primitives'
+import { AnalysisControls, EmptyPanel, ErrorNotice, PageHeading, RebuildButton } from '../components/workspace/Primitives'
 import { useWorkspace } from '../workspace/WorkspaceContext'
 import { useTheme } from '../hooks/useTheme'
 
@@ -115,7 +115,7 @@ export default function ArgumentGraph() {
       action={graph && <RebuildButton onClick={refreshGraph} disabled={busy || stale}>Refresh map</RebuildButton>} />
     {stale && <div className="notice notice-info">The case text changed. Reanalyze the case before refreshing the map.</div>}
     <ErrorNotice message={errors.graph} title="Could not build the argument map" />
-    <SampleCaseMenu />
+    <AnalysisControls />
     {!graph && status.graph !== 'running' && <EmptyPanel icon={GitBranch} title="See the structure behind the case" body={profile ? 'Use the case profile to generate a map of claims and supporting material.' : 'Analyze a case to build its argument map.'} action={profile && <RebuildButton onClick={refreshGraph} disabled={busy || stale}>Build map</RebuildButton>} />}
     {status.graph === 'running' && <div className="loading-line"><span className="spin-dot" /> Building argument relationships…</div>}
     {graph && <>

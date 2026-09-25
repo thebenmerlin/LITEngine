@@ -6,6 +6,8 @@ import { useWorkspace } from '../../workspace/WorkspaceContext'
 
 export const percent = (value) => value == null ? '—' : `${Math.round(value * 100)}%`
 
+const ANALYSIS_STEP_LABELS = { facts: 'Extracting case facts', precedents: 'Finding precedents', graph: 'Mapping arguments', simulation: 'Estimating outcome' }
+
 export function PageHeading({ eyebrow, title, description, action }) {
   return <div className="page-heading">
     <div><span className="eyebrow">{eyebrow}</span><h1>{title}</h1><p>{description}</p></div>
@@ -35,13 +37,13 @@ export function EmptyPanel({ number, title, body, action, icon: Icon }) {
 
 /**
  * The single case-selector dropdown used everywhere a case can be picked
- * (the analysis composer, Ask the case). The trigger shows the CURRENT
+ * (the analysis composer and feature pages). The trigger shows the CURRENT
  * case's name — the matching sample's label, "Custom case" for a pasted
  * or uploaded case, or "Select a case" when nothing's loaded — not a
  * generic "Try sample" label, so it doubles as a case indicator.
  */
 export function SampleCaseMenu({ disabled = false }) {
-  const { caseText, setCaseText, setAppellantType, setFilingDate, setChatMessages } = useWorkspace()
+  const { caseText, loadCase } = useWorkspace()
   const [open, setOpen] = useState(false)
   const rootRef = useRef(null)
 
@@ -65,10 +67,7 @@ export function SampleCaseMenu({ disabled = false }) {
   const currentLabel = matched ? matched.label : caseText.trim() ? 'Custom case' : 'Select a case'
 
   function pick(sample) {
-    setCaseText(sample.text)
-    setAppellantType(sample.appellantType)
-    setFilingDate(sample.filingDate)
-    setChatMessages([]) // switching cases makes any prior chat thread stale
+    loadCase({ text: sample.text, appellantType: sample.appellantType, filingDate: sample.filingDate })
     setOpen(false)
   }
 
@@ -86,10 +85,24 @@ export function SampleCaseMenu({ disabled = false }) {
   </div>
 }
 
-export function CaseComposer({ compact = false, showHeading = true }) {
-  const { caseText, setCaseText, appellantType, filingDate, runAnalysis, busy, stale, status, errors } = useWorkspace()
+/**
+ * The single "run the analysis pipeline" trigger, used both inside
+ * CaseComposer (Overview) and standalone on every other feature page —
+ * those pages dropped the full composer but still need a way to
+ * (re)analyze after switching cases via SampleCaseMenu, since their own
+ * results (profile/precedents/graph/simulation) only come from this.
+ */
+export function AnalyzeCaseButton() {
+  const { caseText, appellantType, filingDate, runAnalysis, busy, stale, status } = useWorkspace()
   const activeStep = Object.entries(status).find(([, value]) => value === 'running')?.[0]
-  const labels = { facts: 'Extracting case facts', precedents: 'Finding precedents', graph: 'Mapping arguments', simulation: 'Estimating outcome' }
+
+  return <button type="button" className="button button-primary" onClick={runAnalysis} disabled={!caseText.trim() || !appellantType || !filingDate || busy}>
+    {busy ? <><LoaderCircle size={16} className="spin" /> {ANALYSIS_STEP_LABELS[activeStep] || 'Analyzing'}</> : <>{stale ? 'Reanalyze case' : 'Analyze case'} <ArrowRight size={16} /></>}
+  </button>
+}
+
+export function CaseComposer({ compact = false, showHeading = true }) {
+  const { caseText, setCaseText, busy, stale, errors } = useWorkspace()
 
   return <div className={`case-composer ${compact ? 'compact' : ''}`}>
     {showHeading && <div className="composer-header"><span className="eyebrow">CASE MATERIAL</span><span>DRAFT STORED FOR THIS SESSION</span></div>}
@@ -102,9 +115,7 @@ export function CaseComposer({ compact = false, showHeading = true }) {
       <div className="composer-note">{caseText.length ? `${caseText.trim().split(/\s+/).length} words` : 'Start with the facts of the matter'}</div>
       <div className="composer-buttons">
         <SampleCaseMenu disabled={busy} />
-        <button className="button button-primary" onClick={runAnalysis} disabled={!caseText.trim() || !appellantType || !filingDate || busy}>
-          {busy ? <><LoaderCircle size={16} className="spin" /> {labels[activeStep] || 'Analyzing'}</> : <>{stale ? 'Reanalyze case' : 'Analyze case'} <ArrowRight size={16} /></>}
-        </button>
+        <AnalyzeCaseButton />
       </div>
     </div>
     {stale && <p className="composer-stale">The case text has changed since the current results were generated.</p>}
@@ -131,6 +142,19 @@ export function FilingDateField({ disabled = false }) {
     <label htmlFor="filing-date">Appeal filing date</label>
     <input id="filing-date" type="date" required value={filingDate} disabled={disabled} onChange={(event) => setFilingDate(event.target.value)} />
   </div>
+}
+
+export function AnalysisControls({ children, showFields = false }) {
+  const { caseText, appellantType, filingDate, busy } = useWorkspace()
+  const needsFields = showFields || (caseText.trim() && (!appellantType || !filingDate))
+
+  return <>
+    <div className="case-controls-row"><SampleCaseMenu /><AnalyzeCaseButton />{children}</div>
+    {needsFields && <div className="analysis-fields">
+      {!appellantType || showFields ? <AppellantTypeField disabled={busy} /> : null}
+      {!filingDate || showFields ? <FilingDateField disabled={busy} /> : null}
+    </div>}
+  </>
 }
 
 export function WorkflowStrip() {

@@ -1,6 +1,6 @@
 import { useEffect, useId, useRef, useState } from 'react'
 import { MessageCircle, LoaderCircle, Paperclip, Plus, SendHorizontal } from 'lucide-react'
-import { EmptyPanel, ErrorNotice, PageHeading, SampleCaseMenu } from '../components/workspace/Primitives'
+import { AnalysisControls, EmptyPanel, ErrorNotice, PageHeading } from '../components/workspace/Primitives'
 import { useWorkspace } from '../workspace/WorkspaceContext'
 import { askCaseChat, uploadCaseFile } from '../lib/api'
 
@@ -21,7 +21,7 @@ function ChatBubble({ message }) {
 }
 
 function UploadCaseButton({ compact = false }) {
-  const { setCaseText, setChatMessages } = useWorkspace()
+  const { caseText, loadCase } = useWorkspace()
   const [uploading, setUploading] = useState(false)
   const [error, setError] = useState(null)
   const [loaded, setLoaded] = useState(null)
@@ -35,9 +35,8 @@ function UploadCaseButton({ compact = false }) {
     setUploading(true)
     try {
       const result = await uploadCaseFile(file)
-      setCaseText(result.text)
-      setChatMessages([]) // a newly uploaded case starts a fresh conversation
-      setLoaded({ filename: result.filename, wordCount: result.word_count })
+      loadCase({ text: result.text })
+      setLoaded({ filename: result.filename, wordCount: result.word_count, text: result.text })
     } catch (err) {
       setError(err)
     } finally {
@@ -50,17 +49,25 @@ function UploadCaseButton({ compact = false }) {
     <label htmlFor={inputId} className={`upload-case-trigger ${compact ? 'compact' : ''} ${uploading ? 'disabled' : ''}`}>
       {uploading ? <LoaderCircle size={compact ? 16 : 15} className="spin" /> : compact ? <Plus size={16} /> : <><Paperclip size={15} /> Upload case file</>}
     </label>
-    {loaded && !uploading && <span className="upload-case-status muted">Loaded {loaded.filename} ({loaded.wordCount.toLocaleString()} words)</span>}
+    {loaded && caseText === loaded.text && !uploading && <span className="upload-case-status muted">Loaded {loaded.filename} ({loaded.wordCount.toLocaleString()} words)</span>}
     <ErrorNotice message={error?.detail || error?.message} title="Couldn't read this file" />
   </div>
 }
 
 export default function CaseChat() {
-  const { caseText, chatMessages: messages, setChatMessages: setMessages } = useWorkspace()
+  const { caseText, caseRevision, chatMessages: messages, setChatMessages: setMessages } = useWorkspace()
   const [draft, setDraft] = useState('')
   const [sending, setSending] = useState(false)
   const [error, setError] = useState(null)
   const threadRef = useRef(null)
+  const currentCase = useRef({ caseText, caseRevision })
+  currentCase.current = { caseText, caseRevision }
+
+  useEffect(() => {
+    setDraft('')
+    setError(null)
+    setSending(false)
+  }, [caseText, caseRevision])
 
   useEffect(() => {
     threadRef.current?.scrollTo({ top: threadRef.current.scrollHeight, behavior: 'smooth' })
@@ -69,6 +76,9 @@ export default function CaseChat() {
   async function send() {
     const question = draft.trim()
     if (!question || sending || !caseText.trim()) return
+    const requestRevision = caseRevision
+    const requestText = caseText
+    const isCurrent = () => currentCase.current.caseRevision === requestRevision && currentCase.current.caseText === requestText
     setError(null)
     setDraft('')
     const history = messages.map(({ role, content }) => ({ role, content }))
@@ -76,11 +86,12 @@ export default function CaseChat() {
     setSending(true)
     try {
       const response = await askCaseChat({ caseText, question, history })
+      if (!isCurrent()) return
       setMessages((current) => [...current, { role: 'assistant', content: response.answer, sources: response.sources, method: response.method }])
     } catch (err) {
-      setError(err)
+      if (isCurrent()) setError(err)
     } finally {
-      setSending(false)
+      if (isCurrent()) setSending(false)
     }
   }
 
@@ -93,10 +104,7 @@ export default function CaseChat() {
 
   return <div className="page-stack">
     <PageHeading eyebrow="CASE MATERIAL" title="Ask the case" description="Ask follow-up questions about the loaded case. Answers are grounded only in this case's own text, with source excerpts you can check." />
-    <div className="case-chat-controls">
-      <SampleCaseMenu />
-      <UploadCaseButton />
-    </div>
+    <AnalysisControls><UploadCaseButton /></AnalysisControls>
 
     {!caseText.trim() && <EmptyPanel icon={MessageCircle} title="Load a case to start asking questions" body="Pick a sample case or upload a .txt, .docx or .pdf, then ask anything about its facts, reasoning or outcome." />}
 

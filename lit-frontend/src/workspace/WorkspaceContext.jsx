@@ -84,6 +84,7 @@ export function WorkspaceProvider({ children }) {
   const [graph, setGraph] = usePersistedState(STORE_KEYS.graph, null)
   const [simulation, setSimulation] = usePersistedState(STORE_KEYS.simulation, null)
   const [chatMessages, setChatMessages] = usePersistedState(STORE_KEYS.chatMessages, [])
+  const [caseRevision, setCaseRevision] = useState(0)
   // Restored results should read as "done", not "idle" — WorkflowStrip
   // already keys off presence of the data itself, but this keeps the
   // running-spinner/empty-panel logic on every page consistent on a
@@ -136,9 +137,28 @@ export function WorkspaceProvider({ children }) {
 
   const clearCase = useCallback(() => {
     runId.current += 1
+    setCaseRevision((current) => current + 1)
     setCaseText('')
     setAppellantTypeState('')
     setFilingDateState('')
+    setAnalyzedText('')
+    setQuery('')
+    setProfile(null)
+    setPrecedents(null)
+    setGraph(null)
+    setSimulation(null)
+    setChatMessages([])
+    setStatus(INITIAL_STATUS)
+    setErrors({})
+  }, [setCaseText, setAppellantTypeState, setFilingDateState, setAnalyzedText, setQuery, setProfile, setPrecedents, setGraph, setSimulation, setChatMessages])
+
+  const loadCase = useCallback(({ text, appellantType: nextAppellantType = '', filingDate: nextFilingDate = '' }) => {
+    // Ignore responses from any analysis started for the previous case.
+    runId.current += 1
+    setCaseRevision((current) => current + 1)
+    setCaseText(text)
+    setAppellantTypeState(nextAppellantType)
+    setFilingDateState(nextFilingDate)
     setAnalyzedText('')
     setQuery('')
     setProfile(null)
@@ -301,7 +321,7 @@ export function WorkspaceProvider({ children }) {
   return (
     <WorkspaceContext.Provider value={{
       caseText, setCaseText, appellantType, setAppellantType, filingDate, setFilingDate, analyzedText, query, setQuery, profile, precedents,
-      graph, simulation, chatMessages, setChatMessages, status, errors, health, busy, stale, clearCase,
+      graph, simulation, chatMessages, setChatMessages, caseRevision, status, errors, health, busy, stale, clearCase, loadCase,
       runAnalysis, search, refreshGraph, refreshSimulation,
     }}>
       {children}

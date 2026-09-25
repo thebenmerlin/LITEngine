@@ -1,8 +1,8 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { ArrowRight, RotateCcw, SlidersHorizontal } from 'lucide-react'
 import { DEFAULT_TWEAKS, recalculate } from '../utils/whatIfCalculator'
-import { EmptyPanel, PageHeading, SampleCaseMenu, percent } from '../components/workspace/Primitives'
+import { AnalysisControls, EmptyPanel, PageHeading, percent } from '../components/workspace/Primitives'
 import { useWorkspace } from '../workspace/WorkspaceContext'
 
 function Range({ label, value, min = 0, max = 5, suffix = '', onChange }) {
@@ -14,10 +14,14 @@ function Choice({ label, value, options, onChange }) {
 }
 
 export default function WhatIf() {
-  const { profile, graph, simulation } = useWorkspace()
+  const { profile, graph, simulation, caseRevision } = useWorkspace()
   const [tweaks, setTweaks] = useState({ ...DEFAULT_TWEAKS })
   const [saved, setSaved] = useState([])
   const baseline = simulation?.result?.win_probability
+  useEffect(() => {
+    setTweaks({ ...DEFAULT_TWEAKS })
+    setSaved([])
+  }, [caseRevision, baseline])
   const result = useMemo(() => baseline == null ? null : recalculate(baseline, tweaks), [baseline, tweaks])
   const effectiveDelta = result ? result.adjusted - baseline : 0
   const weakNodes = graph?.nodes?.filter((node) => graph.weak_nodes?.includes(node.id)) || []
@@ -27,7 +31,7 @@ export default function WhatIf() {
 
   return <div className="page-stack">
     <PageHeading eyebrow="05 / EXPLORATION" title="Scenarios" description="Change assumptions and see how a simple sensitivity estimate moves from the original outcome." />
-    <SampleCaseMenu />
+    <AnalysisControls />
     {baseline == null && <EmptyPanel icon={SlidersHorizontal} title="Start from an analyzed case" body="A base outcome is needed before you can explore different assumptions." action={profile && <Link to="/simulation" className="button button-primary">Run outcome analysis <ArrowRight size={16} /></Link>} />}
     {result && <>
       <div className="scenario-banner"><span className="eyebrow">HOW TO READ THIS VIEW</span><p>Scenario changes are calculated in your browser using a simple heuristic. They are sensitivity estimates, not fresh predictions from the backend.</p></div>
