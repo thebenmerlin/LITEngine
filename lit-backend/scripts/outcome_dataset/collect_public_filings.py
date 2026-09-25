@@ -68,11 +68,15 @@ def collect(seed_csv: Path, output_dir: Path) -> dict:
         seeds = list(reader)
     output_dir.mkdir(parents=True, exist_ok=True)
     manifest = []
+    seen_ids = set()
     with httpx.Client(timeout=45, follow_redirects=True, headers={"User-Agent": "LITEngine research corpus/1.0"}) as client:
         for seed in seeds:
             case_id = seed["case_id"].strip()
             if not re.fullmatch(r"[A-Za-z0-9_-]+", case_id):
                 raise ValueError(f"Unsafe case ID: {case_id!r}")
+            if case_id in seen_ids:
+                raise ValueError(f"Duplicate case ID: {case_id}")
+            seen_ids.add(case_id)
             case_dir = output_dir / case_id
             case_dir.mkdir(exist_ok=True)
             url = download_url(seed["petition_url"].strip())
@@ -85,6 +89,12 @@ def collect(seed_csv: Path, output_dir: Path) -> dict:
                         raise ValueError(f"{case_id}: PDF exceeds {MAX_PDF_BYTES} bytes")
             if not pdf.startswith(b"%PDF-"):
                 raise ValueError(f"{case_id}: response is not a PDF")
+            pdf_hash = hashlib.sha256(pdf).hexdigest()
+            previous_path = case_dir / "provenance.json"
+            if previous_path.exists():
+                previous = json.loads(previous_path.read_text(encoding="utf-8"))
+                if previous["pdf_sha256"] != pdf_hash:
+                    raise ValueError(f"{case_id}: source PDF changed; use a new candidate version")
             pdf_path = case_dir / "petition.pdf"
             pdf_path.write_bytes(pdf)
             text, method, pages = extract_pdf_text(pdf_path)
@@ -96,7 +106,7 @@ def collect(seed_csv: Path, output_dir: Path) -> dict:
                 "source_page_url": seed["source_page_url"].strip(),
                 "claimed_filing_date": seed["claimed_filing_date"].strip(),
                 "downloaded_at_utc": datetime.now(timezone.utc).isoformat(),
-                "pdf_sha256": hashlib.sha256(pdf).hexdigest(),
+                "pdf_sha256": pdf_hash,
                 "text_sha256": hashlib.sha256(text.encode("utf-8")).hexdigest(),
                 "pdf_path": str(pdf_path),
                 "text_path": str(text_path),
