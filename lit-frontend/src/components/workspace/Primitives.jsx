@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { ArrowRight, ChevronDown, CircleCheck, CircleDot, LoaderCircle, RotateCcw, Sparkles } from 'lucide-react'
+import { ArrowRight, ChevronDown, CircleCheck, CircleDot, LoaderCircle, RotateCcw } from 'lucide-react'
 import { SAMPLE_CASES } from '../../data/sampleCases'
 import { useWorkspace } from '../../workspace/WorkspaceContext'
 
@@ -33,8 +33,15 @@ export function EmptyPanel({ number, title, body, action, icon: Icon }) {
   </div>
 }
 
+/**
+ * The single case-selector dropdown used everywhere a case can be picked
+ * (the analysis composer, Ask the case). The trigger shows the CURRENT
+ * case's name — the matching sample's label, "Custom case" for a pasted
+ * or uploaded case, or "Select a case" when nothing's loaded — not a
+ * generic "Try sample" label, so it doubles as a case indicator.
+ */
 export function SampleCaseMenu({ disabled = false }) {
-  const { setCaseText, setAppellantType, setFilingDate } = useWorkspace()
+  const { caseText, setCaseText, setAppellantType, setFilingDate, setChatMessages } = useWorkspace()
   const [open, setOpen] = useState(false)
   const rootRef = useRef(null)
 
@@ -54,16 +61,20 @@ export function SampleCaseMenu({ disabled = false }) {
     }
   }, [open])
 
+  const matched = SAMPLE_CASES.find((sample) => sample.text === caseText)
+  const currentLabel = matched ? matched.label : caseText.trim() ? 'Custom case' : 'Select a case'
+
   function pick(sample) {
     setCaseText(sample.text)
     setAppellantType(sample.appellantType)
     setFilingDate(sample.filingDate)
+    setChatMessages([]) // switching cases makes any prior chat thread stale
     setOpen(false)
   }
 
   return <div className="sample-menu" ref={rootRef}>
-    <button type="button" className="text-button" onClick={() => setOpen((value) => !value)} disabled={disabled} aria-haspopup="menu" aria-expanded={open}>
-      <Sparkles size={15} /> Try sample <ChevronDown size={13} />
+    <button type="button" className="case-name-trigger" onClick={() => setOpen((value) => !value)} disabled={disabled} aria-haspopup="menu" aria-expanded={open}>
+      <span>{currentLabel}</span> <ChevronDown size={13} />
     </button>
     {open && <ul className="sample-menu-list" role="menu">
       {SAMPLE_CASES.map((sample) => (
