@@ -54,4 +54,9 @@ app = gr.mount_gradio_app(fastapi_app, demo, path="/")
 
 if __name__ == "__main__":
     import uvicorn
+    if spaces is not None:
+        # mount_gradio_app bypasses Blocks.launch(), which normally reports
+        # decorated functions to ZeroGPU. Report them before serving FastAPI.
+        import spaces.zero
+        spaces.zero.startup()
     uvicorn.run(app, host="0.0.0.0", port=7860)
